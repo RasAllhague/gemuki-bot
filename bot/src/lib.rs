@@ -1,6 +1,6 @@
 pub mod commands;
 
-use commands::version::version;
+use commands::{game::game, gamekey::gamekey, version::version};
 use poise::serenity_prelude::{self as serenity};
 
 type PoiseError = Box<dyn std::error::Error + Send + Sync>;
@@ -18,7 +18,7 @@ async fn run() -> Result<(), PoiseError> {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![version()],
+            commands: vec![version(), game(), gamekey()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
