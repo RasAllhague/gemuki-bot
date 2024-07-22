@@ -1,0 +1,17 @@
+[package]
+name = "gemuki-bot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+entity = { path = "../entity" }
+migration = { path = "../migration" }
+gemuki-service = { path = "../service" }
+serde = { version = "1", features = ["derive"] }
+dotenvy = "0.15"
+poise = "0.6.1"
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
+log = "0.4.21"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+uuid = { version = "1.8.0", features = ["v4"] }
+thiserror = "1.0.63"
