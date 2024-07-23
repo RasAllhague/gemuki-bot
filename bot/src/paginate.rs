@@ -1,11 +1,10 @@
 //! Sample pagination implementation
 
-use crate::Data;
+use crate::{Data, PoiseError};
 use entity::game;
 use gemuki_service::query::GameKeyQuery;
 use poise::serenity_prelude::{self as serenity, Color, CreateEmbed};
 
-type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
 pub async fn paginate_games(ctx: Context<'_>, pages: &[game::Model]) -> Result<(), PoiseError> {
