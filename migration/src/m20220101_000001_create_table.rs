@@ -41,7 +41,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(GameKey::GameId).integer().not_null())
-                    .col(ColumnDef::new(GameKey::PlatformId).integer().null())
+                    .col(ColumnDef::new(GameKey::PlatformId).integer().not_null())
                     .col(ColumnDef::new(GameKey::Value).string_len(255).not_null().unique_key())
                     .col(
                         ColumnDef::new(GameKey::Keystate)

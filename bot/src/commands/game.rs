@@ -187,7 +187,7 @@ pub async fn remove(
     let deleted_games = GameMutation::delete(db, id).await?;
 
     ctx.reply(format!(
-        "Deleted '{}' keys and '{}' games.",
+        "Deleted `{}` keys and `{}` games.",
         deleted_keys.rows_affected, deleted_games.rows_affected
     ))
     .await?;

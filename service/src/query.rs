@@ -1,12 +1,14 @@
 use ::entity::{
     game::{self, Entity as Game},
-    game_key::{self, Entity as GameKey},
+    game_key::{self, Entity as GameKey}, platform::{self, Entity as Platform},
 };
 use sea_orm::*;
 
 pub struct GameQuery;
 
 pub struct GameKeyQuery;
+
+pub struct PlatformQuery;
 
 impl GameQuery {
     pub async fn get_all(db: &DbConn) -> Result<Vec<game::Model>, DbErr> {
@@ -83,6 +85,23 @@ impl GameKeyQuery {
         GameKey::find()
             .filter(game_key::Column::GameId.eq(game_id))
             .count(db)
+            .await
+    }
+}
+
+impl PlatformQuery {
+    pub async fn get_all(db: &DbConn) -> Result<Vec<platform::Model>, DbErr> {
+        Platform::find().all(db).await
+    }
+
+    pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<platform::Model>, DbErr> {
+        Platform::find_by_id(id).one(db).await
+    }
+
+    pub async fn get_by_name(db: &DbConn, name: &str) -> Result<Option<platform::Model>, DbErr> {
+        Platform::find()
+            .filter(platform::Column::Name.eq(name))
+            .one(db)
             .await
     }
 }
