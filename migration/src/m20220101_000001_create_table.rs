@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Game::Title).string_len(255).not_null())
+                    .col(ColumnDef::new(Game::Title).string_len(255).not_null().unique_key())
                     .col(ColumnDef::new(Game::Description).string_len(500).null())
                     .col(ColumnDef::new(Game::CreateDate).timestamp().not_null())
                     .col(ColumnDef::new(Game::CreateUserId).big_integer().not_null())
@@ -42,7 +42,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(GameKey::GameId).integer().not_null())
                     .col(ColumnDef::new(GameKey::PlatformId).integer().null())
-                    .col(ColumnDef::new(GameKey::Value).string_len(255).not_null())
+                    .col(ColumnDef::new(GameKey::Value).string_len(255).not_null().unique_key())
                     .col(
                         ColumnDef::new(GameKey::Keystate)
                             .enumeration(Alias::new("keystate"), KeyState::iter())
@@ -72,7 +72,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Platform::Name).string_len(255).not_null())
+                    .col(ColumnDef::new(Platform::Name).string_len(255).not_null().unique_key())
                     .col(ColumnDef::new(Platform::StoreLink).string_len(500).null())
                     .to_owned(),
             )
