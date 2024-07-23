@@ -1,11 +1,16 @@
 pub mod commands;
+mod paginate;
 
 use commands::{game::game, gamekey::gamekey, version::version};
+use migration::sea_orm::DatabaseConnection;
+use migration::{sea_orm::Database, Migrator, MigratorTrait};
 use poise::serenity_prelude::{self as serenity};
 
 type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 
-pub struct Data {}
+pub struct Data {
+    conn: DatabaseConnection,
+}
 
 #[tokio::main]
 async fn run() -> Result<(), PoiseError> {
@@ -13,8 +18,12 @@ async fn run() -> Result<(), PoiseError> {
 
     dotenvy::dotenv().ok();
     let token = std::env::var("GEMUKI_TOKEN").expect("Missing GEMUKI_TOKEN.");
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::GUILD_MEMBERS;
+
+    let conn = Database::connect(&db_url).await.unwrap();
+    Migrator::up(&conn, None).await.unwrap();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -24,7 +33,7 @@ async fn run() -> Result<(), PoiseError> {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
+                Ok(Data { conn })
             })
         })
         .build();

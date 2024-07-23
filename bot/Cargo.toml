@@ -15,3 +15,4 @@ log = "0.4.21"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 uuid = { version = "1.8.0", features = ["v4"] }
 thiserror = "1.0.63"
+chrono = "0.4.38"
