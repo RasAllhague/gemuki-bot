@@ -1,4 +1,4 @@
-use crate::{paginate, Data};
+use crate::{commands::autocomplete_game, paginate, Data, PoiseError};
 use chrono::Utc;
 use entity::game;
 use gemuki_service::{
@@ -11,7 +11,6 @@ use poise::{
     CreateReply,
 };
 
-type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
 /// A command for managing games.
@@ -45,32 +44,29 @@ pub async fn list(ctx: Context<'_>) -> Result<(), PoiseError> {
 #[poise::command(slash_command, owners_only)]
 pub async fn details(
     ctx: Context<'_>,
-    #[description = "Id of the game you want to see details of."] id: i32,
+    #[description = "Name of the game."]
+    #[autocomplete = "autocomplete_game"]
+    game: String,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    if let Some(game) = GameQuery::get_one(db, id).await? {
+    if let Some(game) = GameQuery::get_by_title(db, &game).await? {
         let key_count = GameKeyQuery::count_by_game(db, game.id).await?;
 
+        let embed = CreateEmbed::new()
+            .colour(Color::DARK_BLUE)
+            .title(game.title)
+            .description(game.description.unwrap_or("None".to_owned()))
+            .field("Id", format!("{}", game.id), true)
+            .field("Keys", key_count.to_string(), true);
         let embed = match game.image_link {
-            Some(il) => CreateEmbed::new()
-                .colour(Color::DARK_BLUE)
-                .title(game.title)
-                .description(game.description.unwrap_or("None".to_owned()))
-                .image(il)
-                .field("Id", format!("{}", game.id), true)
-                .field("Keys", key_count.to_string(), true),
-            None => CreateEmbed::new()
-                .colour(Color::DARK_BLUE)
-                .title(game.title)
-                .description(game.description.unwrap_or("None".to_owned()))
-                .field("Id", format!("{}", game.id), true)
-                .field("Keys", key_count.to_string(), true),
+            Some(link) => embed.image(link),
+            None => embed,
         };
 
         ctx.send(CreateReply::default().embed(embed)).await?;
     } else {
-        ctx.reply(format!("Could not find a game with the id '{}'.", id))
+        ctx.reply(format!("Could not find a game with the title '{}'.", game))
             .await?;
     }
 

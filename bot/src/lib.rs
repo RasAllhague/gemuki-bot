@@ -6,7 +6,7 @@ use migration::sea_orm::DatabaseConnection;
 use migration::{sea_orm::Database, Migrator, MigratorTrait};
 use poise::serenity_prelude::{self as serenity};
 
-type PoiseError = Box<dyn std::error::Error + Send + Sync>;
+pub type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 
 pub struct Data {
     conn: DatabaseConnection,

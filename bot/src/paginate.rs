@@ -1,42 +1,41 @@
 //! Sample pagination implementation
 
+use crate::Data;
 use entity::game;
-use poise::serenity_prelude as serenity;
+use gemuki_service::query::GameKeyQuery;
+use poise::serenity_prelude::{self as serenity, Color, CreateEmbed};
 
-pub async fn paginate_games<U, E>(
-    ctx: poise::Context<'_, U, E>,
-    pages: &[game::Model],
-) -> Result<(), serenity::Error> {
-    // Define some unique identifiers for the navigation buttons
+type PoiseError = Box<dyn std::error::Error + Send + Sync>;
+type Context<'a> = poise::Context<'a, Data, PoiseError>;
+
+pub async fn paginate_games(ctx: Context<'_>, pages: &[game::Model]) -> Result<(), PoiseError> {
     let ctx_id = ctx.id();
     let prev_button_id = format!("{}prev", ctx_id);
     let next_button_id = format!("{}next", ctx_id);
 
-    // Send the embed with the first page as content
+    let db = &ctx.data().conn;
+
     let reply = {
         let components = serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new(&prev_button_id).emoji('◀'),
             serenity::CreateButton::new(&next_button_id).emoji('▶'),
         ]);
 
+        let embed = create_gamedetail_embed(pages, db, 0).await?;
+
         poise::CreateReply::default()
-            .embed(serenity::CreateEmbed::default().description(pages[0].clone().title))
+            .embed(embed)
             .components(vec![components])
     };
 
     ctx.send(reply).await?;
 
-    // Loop through incoming interactions with the navigation buttons
     let mut current_page = 0;
     while let Some(press) = serenity::collector::ComponentInteractionCollector::new(ctx)
-        // We defined our button IDs to start with `ctx_id`. If they don't, some other command's
-        // button was pressed
         .filter(move |press| press.data.custom_id.starts_with(&ctx_id.to_string()))
-        // Timeout when no navigation button has been pressed for 24 hours
         .timeout(std::time::Duration::from_secs(3600 * 24))
         .await
     {
-        // Depending on which button was pressed, go to next or previous page
         if press.data.custom_id == next_button_id {
             current_page += 1;
             if current_page >= pages.len() {
@@ -45,21 +44,42 @@ pub async fn paginate_games<U, E>(
         } else if press.data.custom_id == prev_button_id {
             current_page = current_page.checked_sub(1).unwrap_or(pages.len() - 1);
         } else {
-            // This is an unrelated button interaction
             continue;
         }
 
-        // Update the message with the new page contents
+        let embed = create_gamedetail_embed(pages, db, current_page).await?;
+
         press
             .create_response(
                 ctx.serenity_context(),
                 serenity::CreateInteractionResponse::UpdateMessage(
-                    serenity::CreateInteractionResponseMessage::new()
-                        .embed(serenity::CreateEmbed::new().description(pages[current_page].clone().title)),
+                    serenity::CreateInteractionResponseMessage::new().embed(embed),
                 ),
             )
             .await?;
     }
 
     Ok(())
+}
+
+async fn create_gamedetail_embed(
+    pages: &[game::Model],
+    db: &migration::sea_orm::DatabaseConnection,
+    current_page: usize,
+) -> Result<CreateEmbed, PoiseError> {
+    let game = pages[current_page].clone();
+    let key_count = GameKeyQuery::count_by_game(db, game.id).await?;
+
+    let embed = CreateEmbed::new()
+        .colour(Color::DARK_BLUE)
+        .title(game.title)
+        .description(game.description.unwrap_or("None".to_owned()))
+        .field("Id", format!("{}", game.id), true)
+        .field("Keys", key_count.to_string(), true);
+    let embed = match game.image_link {
+        Some(link) => embed.image(link),
+        None => embed,
+    };
+
+    Ok(embed)
 }
