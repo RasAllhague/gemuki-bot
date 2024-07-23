@@ -52,12 +52,21 @@ pub async fn details(
     if let Some(game) = GameQuery::get_one(db, id).await? {
         let key_count = GameKeyQuery::count_by_game(db, game.id).await?;
 
-        let embed = CreateEmbed::new()
-            .colour(Color::DARK_BLUE)
-            .title(format!("Game: {}", game.title))
-            .description(game.description.unwrap_or("None".to_owned()))
-            .field("Id", format!("{}", game.id), true)
-            .field("Keys", key_count.to_string(), true);
+        let embed = match game.image_link {
+            Some(il) => CreateEmbed::new()
+                .colour(Color::DARK_BLUE)
+                .title(game.title)
+                .description(game.description.unwrap_or("None".to_owned()))
+                .image(il)
+                .field("Id", format!("{}", game.id), true)
+                .field("Keys", key_count.to_string(), true),
+            None => CreateEmbed::new()
+                .colour(Color::DARK_BLUE)
+                .title(game.title)
+                .description(game.description.unwrap_or("None".to_owned()))
+                .field("Id", format!("{}", game.id), true)
+                .field("Keys", key_count.to_string(), true),
+        };
 
         ctx.send(CreateReply::default().embed(embed)).await?;
     } else {
@@ -85,6 +94,14 @@ pub async fn add(
             .await?;
         return Ok(());
     };
+
+    if let Some(link) = &image_link {
+        if let Err(why) = url::Url::parse(&link) {
+            error!("Invalid url: {}", why);
+            ctx.reply("The url you provided is invalid.").await?;
+            return Ok(());
+        }
+    }
 
     let model = game::Model {
         id: 0,
@@ -120,6 +137,14 @@ pub async fn edit(
     #[description = "Picture link for the image of the game."] image_link: Option<String>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
+
+    if let Some(link) = &image_link {
+        if let Err(why) = url::Url::parse(&link) {
+            error!("Invalid url: {}", why);
+            ctx.reply("The url you provided is invalid.").await?;
+            return Ok(());
+        }
+    }
 
     if let Some(game) = GameQuery::get_one(db, id).await? {
         let model = game::Model {
