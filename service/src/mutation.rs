@@ -35,6 +35,7 @@ impl GameMutation {
             id: game.id,
             title: Set(update_game.title),
             description: Set(update_game.description),
+            image_link: Set(update_game.image_link),
             create_date: game.create_date,
             create_user_id: game.create_user_id,
             modify_date: Set(update_game.modify_date),

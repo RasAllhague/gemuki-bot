@@ -1,3 +1,4 @@
+use crate::{paginate, Data};
 use chrono::Utc;
 use entity::game;
 use gemuki_service::{
@@ -9,7 +10,6 @@ use poise::{
     serenity_prelude::{Color, CreateEmbed},
     CreateReply,
 };
-use crate::{paginate, Data};
 
 type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
@@ -76,6 +76,7 @@ pub async fn add(
     #[description = "Description of the game you want to add. Optional."] description: Option<
         String,
     >,
+    #[description = "Image link for the game. Optional."] image_link: Option<String>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -89,6 +90,7 @@ pub async fn add(
         id: 0,
         title,
         description,
+        image_link: image_link,
         create_date: Utc::now().naive_utc().to_string(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
@@ -115,6 +117,7 @@ pub async fn edit(
     #[description = "Id of the game you want to edit."] id: i32,
     #[description = "Title of the game you want to edit."] title: Option<String>,
     #[description = "Description of the game you want to edit."] description: Option<String>,
+    #[description = "Picture link for the image of the game."] image_link: Option<String>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -123,6 +126,7 @@ pub async fn edit(
             id,
             title: title.unwrap_or(game.title),
             description: description.or(game.description),
+            image_link: image_link.or(game.image_link),
             create_date: game.create_date,
             create_user_id: game.create_user_id,
             modify_date: Some(Utc::now().naive_utc().to_string()),
