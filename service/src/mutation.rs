@@ -47,9 +47,7 @@ impl GameMutation {
     }
 
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-        Game::delete_by_id(id)
-            .exec(db)
-            .await?;
+        Game::delete_by_id(id).exec(db).await?;
 
         Game::delete_by_id(id).exec(db).await
     }
@@ -75,10 +73,11 @@ impl GameKeyMutation {
         db: &DbConn,
         update_gamekey: game_key::Model,
     ) -> Result<Option<game_key::Model>, DbErr> {
-        let gamekey: game_key::ActiveModel = match GameKey::find_by_id(update_gamekey.id).one(db).await? {
-            Some(m) => m.into(),
-            None => return Ok(None),
-        };
+        let gamekey: game_key::ActiveModel =
+            match GameKey::find_by_id(update_gamekey.id).one(db).await? {
+                Some(m) => m.into(),
+                None => return Ok(None),
+            };
 
         let updated = game_key::ActiveModel {
             id: gamekey.id,
@@ -99,9 +98,7 @@ impl GameKeyMutation {
     }
 
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-        GameKey::delete_by_id(id)
-            .exec(db)
-            .await?;
+        GameKey::delete_by_id(id).exec(db).await?;
 
         GameKey::delete_by_id(id).exec(db).await
     }

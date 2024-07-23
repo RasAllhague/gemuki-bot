@@ -43,10 +43,18 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(GameKey::GameId).integer().not_null())
                     .col(ColumnDef::new(GameKey::PlatformId).integer().null())
                     .col(ColumnDef::new(GameKey::Value).string_len(255).not_null())
-                    .col(ColumnDef::new(GameKey::Keystate).enumeration(Alias::new("keystate"), KeyState::iter()).not_null())
+                    .col(
+                        ColumnDef::new(GameKey::Keystate)
+                            .enumeration(Alias::new("keystate"), KeyState::iter())
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(GameKey::PageLink).string_len(500).null())
                     .col(ColumnDef::new(GameKey::CreateDate).timestamp().not_null())
-                    .col(ColumnDef::new(GameKey::CreateUserId).big_integer().not_null())
+                    .col(
+                        ColumnDef::new(GameKey::CreateUserId)
+                            .big_integer()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(GameKey::ModifyDate).timestamp().null())
                     .col(ColumnDef::new(GameKey::ModifyUserId).big_integer().null())
                     .to_owned(),
