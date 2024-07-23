@@ -47,8 +47,6 @@ impl GameMutation {
     }
 
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-        Game::delete_by_id(id).exec(db).await?;
-
         Game::delete_by_id(id).exec(db).await
     }
 }
@@ -98,8 +96,13 @@ impl GameKeyMutation {
     }
 
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-        GameKey::delete_by_id(id).exec(db).await?;
-
         GameKey::delete_by_id(id).exec(db).await
+    }
+
+    pub async fn delete_by_game(db: &DbConn, game_id: i32) -> Result<DeleteResult, DbErr> {
+        GameKey::delete_many()
+            .filter(game_key::Column::GameId.eq(game_id))
+            .exec(db)
+            .await
     }
 }
