@@ -1,6 +1,7 @@
 use ::entity::{
     game::{self, Entity as Game},
-    game_key::{self, Entity as GameKey}, platform::{self, Entity as Platform},
+    game_key::{self, Entity as GameKey},
+    platform::{self, Entity as Platform},
 };
 use sea_orm::*;
 
@@ -34,22 +35,15 @@ impl GameQuery {
 }
 
 impl GameKeyQuery {
-    pub async fn get_all(
-        db: &DbConn,
-    ) -> Result<Vec<game_key::Model>, DbErr> {
-        GameKey::find()
-            .all(db)
-            .await
+    pub async fn get_all(db: &DbConn) -> Result<Vec<game_key::Model>, DbErr> {
+        GameKey::find().all(db).await
     }
 
     pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<game_key::Model>, DbErr> {
         GameKey::find_by_id(id).one(db).await
     }
 
-    pub async fn get_all_by_game(
-        db: &DbConn,
-        game_id: i32,
-    ) -> Result<Vec<game_key::Model>, DbErr> {
+    pub async fn get_all_by_game(db: &DbConn, game_id: i32) -> Result<Vec<game_key::Model>, DbErr> {
         GameKey::find()
             .filter(game_key::Column::GameId.eq(game_id))
             .all(db)
@@ -78,10 +72,7 @@ impl GameKeyQuery {
             .await
     }
 
-    pub async fn count_by_game(
-        db: &DbConn,
-        game_id: i32,
-    ) -> Result<u64, DbErr> {
+    pub async fn count_by_game(db: &DbConn, game_id: i32) -> Result<u64, DbErr> {
         GameKey::find()
             .filter(game_key::Column::GameId.eq(game_id))
             .count(db)

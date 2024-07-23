@@ -10,7 +10,10 @@ impl MigrationTrait for Migration {
             .into_table(Platform::Table)
             .columns([Platform::Name, Platform::StoreLink])
             .values_panic(["Steam".into(), "https://store.steampowered.com/".into()])
-            .values_panic(["Epic Games".into(), "https://store.epicgames.com/de/".into()])
+            .values_panic([
+                "Epic Games".into(),
+                "https://store.epicgames.com/de/".into(),
+            ])
             .values_panic([
                 "Ubisoft Connect".into(),
                 "https://www.ubisoft.com/de-de/ubisoft-connect".into(),

@@ -2,9 +2,9 @@ pub mod game;
 pub mod gamekey;
 pub mod version;
 
+use crate::{Data, PoiseError};
 use gemuki_service::query::GameQuery;
 use poise::serenity_prelude::futures::{self, Stream, StreamExt};
-use crate::{Data, PoiseError};
 
 pub type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
