@@ -67,6 +67,16 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(GameKey::ModifyDate).timestamp().null())
                     .col(ColumnDef::new(GameKey::ModifyUserId).big_integer().null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(GameKey::Table, GameKey::GameId)
+                            .to(Game::Table, Game::Id),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(GameKey::Table, GameKey::PlatformId)
+                            .to(Platform::Table, Platform::Id),
+                    )
                     .to_owned(),
             )
             .await?;

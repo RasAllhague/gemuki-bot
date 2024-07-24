@@ -7,13 +7,12 @@ use sea_orm::*;
 
 pub struct GameMutation;
 
-pub struct GameKeyMutation;
-
 impl GameMutation {
     pub async fn create(db: &DbConn, game: game::Model) -> Result<game::Model, DbErr> {
         game::ActiveModel {
             title: Set(game.title),
             description: Set(game.description),
+            image_link: Set(game.image_link),
             create_date: Set(game.create_date.clone()),
             create_user_id: Set(game.create_user_id.clone()),
             ..Default::default()
@@ -51,6 +50,8 @@ impl GameMutation {
         Game::delete_by_id(id).exec(db).await
     }
 }
+
+pub struct GameKeyMutation;
 
 impl GameKeyMutation {
     pub async fn create(db: &DbConn, gamekey: game_key::Model) -> Result<game_key::Model, DbErr> {

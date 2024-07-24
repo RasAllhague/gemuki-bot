@@ -34,6 +34,27 @@ impl GameQuery {
     }
 }
 
+#[derive(Clone)]
+pub struct GameKeyModel {
+    game_key: game_key::Model,
+    game: game::Model,
+    platform: platform::Model,
+}
+
+impl GameKeyModel {
+    pub fn game_key(&self) -> &game_key::Model {
+        &self.game_key
+    }
+    
+    pub fn game(&self) -> &game::Model {
+        &self.game
+    }
+    
+    pub fn platform(&self) -> &platform::Model {
+        &self.platform
+    }
+}
+
 impl GameKeyQuery {
     pub async fn get_all(db: &DbConn) -> Result<Vec<game_key::Model>, DbErr> {
         GameKey::find().all(db).await
@@ -43,19 +64,45 @@ impl GameKeyQuery {
         GameKey::find_by_id(id).one(db).await
     }
 
-    pub async fn get_all_by_game(db: &DbConn, game_id: i32) -> Result<Vec<game_key::Model>, DbErr> {
-        GameKey::find()
+    pub async fn get_all_by_game(db: &DbConn, game_id: i32) -> Result<Vec<GameKeyModel>, DbErr> {
+        let game_keys = GameKey::find()
             .filter(game_key::Column::GameId.eq(game_id))
             .all(db)
-            .await
+            .await?;
+
+        let mut complete_models: Vec<GameKeyModel> = Vec::new();
+
+        for game_key in game_keys {
+            let platform = game_key
+                .find_related(Platform)
+                .one(db)
+                .await?
+                .ok_or(DbErr::Custom(
+                    "No platform bound to this gamekey".to_owned(),
+                ))?;
+            let game = game_key
+                .find_related(Game)
+                .one(db)
+                .await?
+                .ok_or(DbErr::Custom("No game bound to this gamekey".to_owned()))?;
+
+            complete_models.push(GameKeyModel {
+                game_key,
+                platform,
+                game,
+            });
+        }
+
+        Ok(complete_models)
     }
 
     pub async fn get_all_by_platform(
         db: &DbConn,
         platform_id: i32,
-    ) -> Result<Vec<game_key::Model>, DbErr> {
+    ) -> Result<Vec<(game_key::Model, Option<platform::Model>)>, DbErr> {
         GameKey::find()
             .filter(game_key::Column::PlatformId.eq(platform_id))
+            .find_also_related(Platform)
             .all(db)
             .await
     }

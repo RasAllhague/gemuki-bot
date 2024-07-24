@@ -2,12 +2,12 @@ use chrono::Utc;
 use entity::game_key;
 use gemuki_service::{
     mutation::GameKeyMutation,
-    query::{GameKeyQuery, GameQuery, PlatformQuery},
+    query::{GameKeyModel, GameKeyQuery, GameQuery, PlatformQuery},
 };
 use log::{error, warn};
 use poise::{serenity_prelude::CreateEmbed, CreateReply};
 
-use crate::{commands::autocomplete_game, Data};
+use crate::{commands::autocomplete_game, paginate, Data};
 
 type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
@@ -67,13 +67,47 @@ pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
 #[poise::command(slash_command, owners_only)]
 pub async fn list(
     ctx: Context<'_>,
-    #[description = "Id of the game you want to list keys from."] game_id: i32,
+    #[description = "Name of the game you want to see keys of."]
+    #[autocomplete = "autocomplete_game"]
+    game: String,
     #[description = "Filter for state of keys."] keystate: Option<KeystateCoice>,
     #[description = "Filter for the platform."] platform: Option<PlatformCoice>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    ctx.say("How did you manage to do this?").await?;
+    let game = match GameQuery::get_by_title(db, &game).await? {
+        Some(g) => g,
+        None => {
+            ctx.reply("Could not find game.").await?;
+            return Ok(());
+        }
+    };
+    let game_keys = GameKeyQuery::get_all_by_game(db, game.id).await?;
+
+    let game_keys = match keystate {
+        Some(choice) => game_keys
+            .iter()
+            .filter(|x| x.game_key().keystate == choice.to_string())
+            .map(|x| x.clone())
+            .collect::<Vec<GameKeyModel>>(),
+        None => game_keys,
+    };
+
+    let game_keys = match platform {
+        Some(choice) => game_keys
+            .iter()
+            .filter(|x| x.game_key().keystate == choice.to_string())
+            .map(|x| x.clone())
+            .collect::<Vec<GameKeyModel>>(),
+        None => game_keys,
+    };
+
+    if !game_keys.is_empty() {
+        paginate::paginate_game_keys(ctx, &game_keys).await?;
+    } else {
+        ctx.reply("No games found.").await?;
+    }
+
     Ok(())
 }
 
@@ -245,7 +279,76 @@ pub async fn edit(
     #[description = "Value of the key."] value: Option<String>,
     #[description = "Store page link of the key."] page_link: Option<String>,
 ) -> Result<(), PoiseError> {
-    ctx.say("How did you manage to do this?").await?;
+    let db = &ctx.data().conn;
+
+    if let Some(page_link) = &page_link {
+        if let Err(why) = url::Url::parse(&page_link) {
+            error!("Invalid url: {}", why);
+            ctx.reply("The url you provided is invalid.").await?;
+            return Ok(());
+        }
+    }
+
+    if let Some(game_key) = GameKeyQuery::get_one(db, id).await? {
+        let game_id = if let Some(game) = game {
+            match GameQuery::get_by_title(db, &game).await? {
+                Some(g) => g.id,
+                None => {
+                    ctx.reply("Could not find game.").await?;
+                    return Ok(());
+                }
+            }
+        } else {
+            game_key.game_id
+        };
+
+        let platform_id = if let Some(platform) = platform {
+            match PlatformQuery::get_by_name(db, &platform.to_string()).await? {
+                Some(g) => g.id,
+                None => {
+                    ctx.send(
+                        CreateReply::default()
+                            .content(format!(
+                                "The platform `{}` does not exist.",
+                                platform.to_string()
+                            ))
+                            .ephemeral(true),
+                    )
+                    .await?;
+                    return Ok(());
+                }
+            }
+        } else {
+            game_key.platform_id
+        };
+
+        let model = game_key::Model {
+            id,
+            game_id: game_id,
+            platform_id: platform_id,
+            value: value.unwrap_or(game_key.value),
+            keystate: keystate.map(|x| x.to_string()).unwrap_or(game_key.keystate),
+            page_link: page_link,
+            create_date: game_key.create_date,
+            create_user_id: game_key.create_user_id,
+            modify_date: Some(Utc::now().naive_utc().to_string()),
+            modify_user_id: Some(ctx.author().id.into()),
+        };
+
+        let message = match GameKeyMutation::update(db, model).await {
+            Ok(_) => "Successfully updated game.",
+            Err(why) => {
+                error!("Could not update game because of '{}'.", why);
+                "Could not update the game because of an internal error."
+            }
+        };
+
+        ctx.reply(message).await?;
+    } else {
+        ctx.reply(format!("Could not find a game with the id '{}'.", id))
+            .await?;
+    }
+
     Ok(())
 }
 
