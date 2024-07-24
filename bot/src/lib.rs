@@ -18,7 +18,7 @@ async fn run() -> Result<(), PoiseError> {
 
     dotenvy::dotenv().ok();
     let token = std::env::var("GEMUKI_TOKEN").expect("Missing GEMUKI_TOKEN.");
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
+    let db_url = std::env::var("GEMUKI_DATABASE_URL").expect("GEMUKI_DATABASE_URL is not set in .env file");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::GUILD_MEMBERS;
 
