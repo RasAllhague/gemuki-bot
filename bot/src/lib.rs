@@ -22,8 +22,8 @@ async fn run() -> Result<(), PoiseError> {
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::GUILD_MEMBERS;
 
-    let conn = Database::connect(&db_url).await.unwrap();
-    Migrator::up(&conn, None).await.unwrap();
+    let conn = Database::connect(&db_url).await?;
+    Migrator::up(&conn, None).await?;
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -41,7 +41,7 @@ async fn run() -> Result<(), PoiseError> {
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
         .await;
-    client.unwrap().start().await.unwrap();
+    client?.start().await?;
 
     Ok(())
 }
