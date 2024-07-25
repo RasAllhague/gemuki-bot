@@ -3,7 +3,6 @@ pub mod gamekey;
 pub mod version;
 
 use crate::{Data, PoiseError};
-use gemuki_service::query::GameQuery;
 use poise::serenity_prelude::futures::{self, Stream, StreamExt};
 
 pub type Context<'a> = poise::Context<'a, Data, PoiseError>;
@@ -12,14 +11,14 @@ async fn autocomplete_game<'a>(
     ctx: Context<'_>,
     partial: &'a str,
 ) -> impl Stream<Item = String> + 'a {
+    let mut cache = ctx.data().cache.lock().await;
     let db = &ctx.data().conn;
 
-    let games = match GameQuery::get_all(db).await {
-        Ok(g) => g.iter().map(|x| x.title.clone()).collect(),
-        Err(_) => Vec::new(),
-    };
+    cache.update(db).await;
 
-    futures::stream::iter(games)
+    let title = cache.cache().to_vec();
+
+    futures::stream::iter(title)
         .filter(move |name| futures::future::ready(name.starts_with(partial)))
         .map(|name| name.to_string())
 }

@@ -17,3 +17,4 @@ uuid = { version = "1.8.0", features = ["v4"] }
 thiserror = "1.0.63"
 chrono = "0.4.38"
 url = "2.5.2"
+async-mutex = "1.4.0"

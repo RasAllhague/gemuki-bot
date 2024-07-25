@@ -118,6 +118,8 @@ pub async fn add(
         }
     };
 
+    ctx.data().cache.lock().await.force_update(db).await;
+
     ctx.reply(message).await?;
 
     Ok(())
@@ -163,6 +165,8 @@ pub async fn edit(
                 "Could not update the game because of an internal error."
             }
         };
+
+        ctx.data().cache.lock().await.force_update(db).await;
 
         ctx.reply(message).await?;
     } else {
