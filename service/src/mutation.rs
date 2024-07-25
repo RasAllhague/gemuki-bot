@@ -3,15 +3,17 @@ use ::entity::{
     game_key::{self, Entity as GameKey},
 };
 
-use sea_orm::{ActiveModelTrait, ColumnTrait, DbConn, DbErr, DeleteResult, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DbConn, DbErr, DeleteResult, EntityTrait, QueryFilter, Set,
+};
 
 pub struct GameMutation;
 
 impl GameMutation {
     /// Creates a new game.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn create(db: &DbConn, game: game::Model) -> Result<game::Model, DbErr> {
         game::ActiveModel {
@@ -27,9 +29,9 @@ impl GameMutation {
     }
 
     /// Updates the details of a game.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn update(
         db: &DbConn,
@@ -57,9 +59,9 @@ impl GameMutation {
     }
 
     /// Deletes a gamekey by its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
         Game::delete_by_id(id).exec(db).await
@@ -70,9 +72,9 @@ pub struct GameKeyMutation;
 
 impl GameKeyMutation {
     /// Creates a new gamekey.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn create(db: &DbConn, gamekey: game_key::Model) -> Result<game_key::Model, DbErr> {
         game_key::ActiveModel {
@@ -90,9 +92,9 @@ impl GameKeyMutation {
     }
 
     /// Updates the details of a gamekey.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn update(
         db: &DbConn,
@@ -124,18 +126,18 @@ impl GameKeyMutation {
     }
 
     /// Deletes a gamekey by its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
         GameKey::delete_by_id(id).exec(db).await
     }
 
     /// Deletes all game keys by game id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn delete_by_game(db: &DbConn, game_id: i32) -> Result<DeleteResult, DbErr> {
         GameKey::delete_many()

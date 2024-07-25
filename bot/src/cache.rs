@@ -26,11 +26,11 @@ impl Cache {
             Err(_) => Vec::new(),
         }
     }
-    
+
     pub fn last_refresh(&self) -> NaiveDateTime {
         self.last_refresh
     }
-    
+
     pub fn cache(&self) -> &[String] {
         &self.cache
     }
@@ -38,19 +38,19 @@ impl Cache {
     pub async fn update(&mut self, db: &DbConn) {
         let now: NaiveDateTime = Utc::now().naive_utc();
         let delta = now - self.last_refresh;
-        
+
         if delta.num_seconds() > self.refresh_interval.num_seconds() || self.cache.is_empty() {
             self.cache = Self::get_game_titles(db).await;
             self.last_refresh = now;
 
             info!("Cache has been updated.");
-        } 
+        }
     }
 
     pub async fn force_update(&mut self, db: &DbConn) {
         self.cache = Self::get_game_titles(db).await;
         self.last_refresh = Utc::now().naive_utc();
-        
+
         info!("Cache has been updated forcefully.");
     }
 }

@@ -1,6 +1,6 @@
+pub mod cache;
 pub mod commands;
 mod paginate;
-pub mod cache;
 
 use async_mutex::Mutex;
 use cache::Cache;
@@ -23,9 +23,9 @@ async fn run() -> Result<(), PoiseError> {
 
     dotenvy::dotenv().ok();
     let token = std::env::var("GEMUKI_TOKEN").expect("Missing GEMUKI_TOKEN.");
-    let db_url = std::env::var("GEMUKI_DATABASE_URL").expect("GEMUKI_DATABASE_URL is not set in .env file");
-    let intents =
-        serenity::GatewayIntents::non_privileged();
+    let db_url =
+        std::env::var("GEMUKI_DATABASE_URL").expect("GEMUKI_DATABASE_URL is not set in .env file");
+    let intents = serenity::GatewayIntents::non_privileged();
 
     let conn = Database::connect(&db_url).await?;
     Migrator::up(&conn, None).await?;
@@ -41,7 +41,10 @@ async fn run() -> Result<(), PoiseError> {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { conn, cache: Mutex::new(cache) })
+                Ok(Data {
+                    conn,
+                    cache: Mutex::new(cache),
+                })
             })
         })
         .build();
