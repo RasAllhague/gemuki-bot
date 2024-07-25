@@ -20,7 +20,7 @@ async fn run() -> Result<(), PoiseError> {
     let token = std::env::var("GEMUKI_TOKEN").expect("Missing GEMUKI_TOKEN.");
     let db_url = std::env::var("GEMUKI_DATABASE_URL").expect("GEMUKI_DATABASE_URL is not set in .env file");
     let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::GUILD_MEMBERS;
+        serenity::GatewayIntents::non_privileged();
 
     let conn = Database::connect(&db_url).await?;
     Migrator::up(&conn, None).await?;
