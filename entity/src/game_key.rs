@@ -18,6 +18,7 @@ pub struct Model {
     pub create_user_id: i64,
     pub modify_date: Option<String>,
     pub modify_user_id: Option<i64>,
+    pub notes: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

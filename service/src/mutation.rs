@@ -111,6 +111,7 @@ impl GameKeyMutation {
             value: Set(update_gamekey.value),
             keystate: Set(update_gamekey.keystate),
             page_link: Set(update_gamekey.page_link),
+            notes: Set(update_gamekey.notes),
             create_date: gamekey.create_date,
             create_user_id: gamekey.create_user_id,
             modify_date: Set(update_gamekey.modify_date),
