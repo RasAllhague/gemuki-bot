@@ -336,10 +336,10 @@ pub async fn edit(
         };
 
         let message = match GameKeyMutation::update(db, model).await {
-            Ok(_) => "Successfully updated game.",
+            Ok(_) => "Successfully updated gamekey.",
             Err(why) => {
-                error!("Could not update game because of '{}'.", why);
-                "Could not update the game because of an internal error."
+                error!("Could not update gamekey because of '{}'.", why);
+                "Could not update the gamekey because of an internal error."
             }
         };
 
