@@ -127,7 +127,9 @@ pub async fn add(
 #[poise::command(slash_command, owners_only)]
 pub async fn edit(
     ctx: Context<'_>,
-    #[description = "Id of the game you want to edit."] id: i32,
+    #[description = "Name of the game."]
+    #[autocomplete = "autocomplete_game"]
+    game: String,
     #[description = "Title of the game you want to edit."] title: Option<String>,
     #[description = "Description of the game you want to edit."] description: Option<String>,
     #[description = "Picture link for the image of the game."] image_link: Option<String>,
@@ -142,9 +144,9 @@ pub async fn edit(
         }
     }
 
-    if let Some(game) = GameQuery::get_one(db, id).await? {
+    if let Some(game) = GameQuery::get_by_title(db, &game).await? {
         let model = game::Model {
-            id,
+            id: game.id,
             title: title.unwrap_or(game.title),
             description: description.or(game.description),
             image_link: image_link.or(game.image_link),
@@ -164,7 +166,7 @@ pub async fn edit(
 
         ctx.reply(message).await?;
     } else {
-        ctx.reply(format!("Could not find a game with the id '{}'.", id))
+        ctx.reply(format!("Could not find a game with title '{}'.", game))
             .await?;
     }
 
@@ -175,20 +177,27 @@ pub async fn edit(
 #[poise::command(slash_command, owners_only)]
 pub async fn remove(
     ctx: Context<'_>,
-    #[description = "Id of the game you want to delete."] id: i32,
+    #[description = "Name of the game."]
+    #[autocomplete = "autocomplete_game"]
+    game: String,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let deleted_keys = GameKeyMutation::delete_by_game(db, id).await?;
-    let deleted_games = GameMutation::delete(db, id).await?;
+    if let Some(game) = GameQuery::get_by_title(db, &game).await? {
+        let deleted_keys = GameKeyMutation::delete_by_game(db, game.id).await?;
+        let deleted_games = GameMutation::delete(db, game.id).await?;
 
-    ctx.reply(format!(
-        "Deleted `{}` keys and `{}` games.",
-        deleted_keys.rows_affected, deleted_games.rows_affected
-    ))
-    .await?;
+        ctx.reply(format!(
+            "Deleted `{}` keys and `{}` games.",
+            deleted_keys.rows_affected, deleted_games.rows_affected
+        ))
+        .await?;
 
-    warn!("Deleted game with id '{id}'.");
+        warn!("Deleted game with title '{}'.", game.title);
+    } else {
+        ctx.reply(format!("No game with title {} found.", game))
+            .await?;
+    }
 
     Ok(())
 }
