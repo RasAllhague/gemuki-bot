@@ -81,7 +81,10 @@ async fn create_gamedetail_embed(
     Ok(embed)
 }
 
-pub async fn paginate_game_keys(ctx: Context<'_>, pages: &[GameKeyModel]) -> Result<(), PoiseError> {
+pub async fn paginate_game_keys(
+    ctx: Context<'_>,
+    pages: &[GameKeyModel],
+) -> Result<(), PoiseError> {
     let ctx_id = ctx.id();
     let prev_button_id = format!("{}prev", ctx_id);
     let next_button_id = format!("{}next", ctx_id);
@@ -168,6 +171,6 @@ async fn create_gamekey_detail_embed(
         Some(link) => embed.image(link),
         None => embed,
     };
-    
+
     Ok(embed)
 }

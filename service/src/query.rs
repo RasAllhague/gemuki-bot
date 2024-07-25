@@ -13,27 +13,27 @@ pub struct PlatformQuery;
 
 impl GameQuery {
     /// Gets all games from the database.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all(db: &DbConn) -> Result<Vec<game::Model>, DbErr> {
         Game::find().all(db).await
     }
 
     /// Gets a game from the database by its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<game::Model>, DbErr> {
         Game::find_by_id(id).one(db).await
     }
 
     /// Gets a game by its title from the database.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<game::Model>, DbErr> {
         Game::find()
@@ -43,9 +43,9 @@ impl GameQuery {
     }
 
     /// Checks whether a game exists by its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn exists(db: &DbConn, id: i32) -> Result<bool, DbErr> {
         let game = Game::find_by_id(id).one(db).await?;
@@ -67,12 +67,12 @@ impl GameKeyModel {
     pub fn game_key(&self) -> &game_key::Model {
         &self.game_key
     }
-    
+
     #[must_use]
     pub fn game(&self) -> &game::Model {
         &self.game
     }
-    
+
     #[must_use]
     pub fn platform(&self) -> &platform::Model {
         &self.platform
@@ -81,27 +81,27 @@ impl GameKeyModel {
 
 impl GameKeyQuery {
     /// Gets all gamekeys in the database.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all(db: &DbConn) -> Result<Vec<game_key::Model>, DbErr> {
         GameKey::find().all(db).await
     }
 
     /// Gets a gamekey by its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<game_key::Model>, DbErr> {
         GameKey::find_by_id(id).one(db).await
     }
 
     /// Gets all gamekeys filtered by game.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all_by_game(db: &DbConn, game_id: i32) -> Result<Vec<GameKeyModel>, DbErr> {
         let game_keys = GameKey::find()
@@ -136,9 +136,9 @@ impl GameKeyQuery {
     }
 
     /// Gets all gamekeys filtered by platform.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all_by_platform(
         db: &DbConn,
@@ -152,9 +152,9 @@ impl GameKeyQuery {
     }
 
     /// Gets all gamekeys filtered by platform and game.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all_filtered(
         db: &DbConn,
@@ -169,9 +169,9 @@ impl GameKeyQuery {
     }
 
     /// Gets the number of gamekeys found for a game id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn count_by_game(db: &DbConn, game_id: i32) -> Result<u64, DbErr> {
         GameKey::find()
@@ -183,27 +183,27 @@ impl GameKeyQuery {
 
 impl PlatformQuery {
     /// Gets all platforms in the database.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_all(db: &DbConn) -> Result<Vec<platform::Model>, DbErr> {
         Platform::find().all(db).await
     }
 
     /// Gets a platform based on its id.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<platform::Model>, DbErr> {
         Platform::find_by_id(id).one(db).await
     }
 
     /// Gets a platform based on its name.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_by_name(db: &DbConn, name: &str) -> Result<Option<platform::Model>, DbErr> {
         Platform::find()
