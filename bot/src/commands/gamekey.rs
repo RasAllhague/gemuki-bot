@@ -190,6 +190,7 @@ pub async fn add(
     #[description = "State of the key."] keystate: KeystateCoice,
     #[description = "Value of the key."] value: String,
     #[description = "Store page link of the key."] page_link: Option<String>,
+    #[description = "Notes for the key."] notes: Option<String>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -228,6 +229,7 @@ pub async fn add(
         value,
         keystate: keystate.to_string(),
         page_link: page_link,
+        notes: notes,
         create_date: Utc::now().naive_utc().to_string(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
@@ -278,6 +280,7 @@ pub async fn edit(
     #[description = "State of the key."] keystate: Option<KeystateCoice>,
     #[description = "Value of the key."] value: Option<String>,
     #[description = "Store page link of the key."] page_link: Option<String>,
+    #[description = "Notes for the key."] notes: Option<String>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -328,7 +331,8 @@ pub async fn edit(
             platform_id: platform_id,
             value: value.unwrap_or(game_key.value),
             keystate: keystate.map(|x| x.to_string()).unwrap_or(game_key.keystate),
-            page_link: page_link,
+            page_link: page_link.or(game_key.page_link),
+            notes: notes.or(game_key.notes),
             create_date: game_key.create_date,
             create_user_id: game_key.create_user_id,
             modify_date: Some(Utc::now().naive_utc().to_string()),
