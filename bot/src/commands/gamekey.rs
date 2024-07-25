@@ -287,7 +287,14 @@ pub async fn edit(
     if let Some(page_link) = &page_link {
         if let Err(why) = url::Url::parse(&page_link) {
             error!("Invalid url: {}", why);
-            ctx.reply("The url you provided is invalid.").await?;
+
+            ctx.send(
+                CreateReply::default()
+                    .content("The url you provided is invalid.")
+                    .ephemeral(true),
+            )
+            .await?;
+
             return Ok(());
         }
     }
@@ -297,7 +304,12 @@ pub async fn edit(
             match GameQuery::get_by_title(db, &game).await? {
                 Some(g) => g.id,
                 None => {
-                    ctx.reply("Could not find game.").await?;
+                    ctx.send(
+                        CreateReply::default()
+                            .content("Could not find game.")
+                            .ephemeral(true),
+                    )
+                    .await?;
                     return Ok(());
                 }
             }
@@ -347,10 +359,15 @@ pub async fn edit(
             }
         };
 
-        ctx.reply(message).await?;
-    } else {
-        ctx.reply(format!("Could not find a game with the id '{}'.", id))
+        ctx.send(CreateReply::default().content(message).ephemeral(true))
             .await?;
+    } else {
+        ctx.send(
+            CreateReply::default()
+                .content(format!("Could not find a game with the id '{}'.", id))
+                .ephemeral(true),
+        )
+        .await?;
     }
 
     Ok(())
