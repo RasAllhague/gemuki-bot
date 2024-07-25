@@ -19,6 +19,8 @@ async fn autocomplete_game<'a>(
     let title = cache.cache().to_vec();
 
     futures::stream::iter(title)
-        .filter(move |name| futures::future::ready(name.starts_with(partial)))
+        .filter(move |name| {
+            futures::future::ready(name.to_lowercase().starts_with(&partial.to_lowercase()))
+        })
         .map(|name| name.to_string())
 }

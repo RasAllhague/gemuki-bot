@@ -30,8 +30,7 @@ async fn run() -> Result<(), PoiseError> {
     let conn = Database::connect(&db_url).await?;
     Migrator::up(&conn, None).await?;
 
-    //let cache = Cache::init(&conn, Duration::seconds(3600)).await;
-    let cache = Cache::init(&conn, Duration::seconds(10)).await;
+    let cache = Cache::init(&conn, Duration::seconds(3600)).await;
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
