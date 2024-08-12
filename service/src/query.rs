@@ -3,7 +3,7 @@ use ::entity::{
     game_key::{self, Entity as GameKey},
     platform::{self, Entity as Platform},
 };
-use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DbConn, DbErr, EntityOrSelect, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect};
 
 pub struct GameQuery;
 
@@ -178,6 +178,23 @@ impl GameKeyQuery {
             .filter(game_key::Column::GameId.eq(game_id))
             .count(db)
             .await
+    }
+
+    /// Gets all unused gamekey ids
+    /// 
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
+    pub async fn get_all_ids(db: &DbConn) -> Result<Vec<i32>, DbErr> {
+        let res: Vec<i32> = GameKey::find()
+            .select_only()
+            .column(game_key::Column::Id)
+            .filter(game_key::Column::Keystate.eq("Unused"))
+            .into_tuple()
+            .all(db)
+            .await?;
+
+        Ok(res)
     }
 }
 
