@@ -3,7 +3,7 @@ use ::entity::{
     game_key::{self, Entity as GameKey},
     platform::{self, Entity as Platform},
 };
-use sea_orm::{ColumnTrait, DbConn, DbErr, EntityOrSelect, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect};
 
 pub struct GameQuery;
 
