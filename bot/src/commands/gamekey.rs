@@ -6,6 +6,7 @@ use gemuki_service::{
 };
 use log::{error, warn};
 use poise::{serenity_prelude::CreateEmbed, CreateReply};
+use rand::Rng;
 
 use crate::{commands::autocomplete_game, paginate, Data};
 
@@ -56,7 +57,7 @@ impl ToString for PlatformCoice {
 #[poise::command(
     slash_command,
     owners_only,
-    subcommands("list", "details", "add", "remove", "edit", "claim")
+    subcommands("list", "details", "add", "remove", "edit", "claim", "claim_random")
 )]
 pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
     ctx.say("How did you manage to do this?").await?;
@@ -406,6 +407,61 @@ pub async fn claim(
 
     let reply = CreateReply::default()
         .content(format!("Your key: `{}`", game_key.value))
+        .ephemeral(true);
+
+    game_key.keystate = "Used".to_owned();
+    game_key.modify_date = Some(Utc::now().naive_utc().to_string());
+    game_key.modify_user_id = Some(ctx.author().id.into());
+
+    GameKeyMutation::update(db, game_key).await?;
+
+    ctx.send(reply).await?;
+    Ok(())
+}
+
+/// Claims a key. Sends the key value hidden behind a spoiler into the channel.
+#[poise::command(slash_command, owners_only, name_localized("de", "claim-random"), name_localized("en-US", "claim-random"))]
+pub async fn claim_random(
+    ctx: Context<'_>,
+) -> Result<(), PoiseError> {
+    let db = &ctx.data().conn;
+
+    let gamekeys = GameKeyQuery::get_all_ids(db).await?;
+
+    if gamekeys.is_empty() {
+        ctx.send(
+            CreateReply::default()
+                .content("No more gamekeys are available.")
+                .ephemeral(true),
+        )
+        .await?;
+
+        return Ok(());
+    }
+
+    let random_number = {
+        let mut rng = rand::thread_rng();
+        rng.gen_range(0..gamekeys.len())
+    };
+    let gamekey_id = gamekeys[random_number];
+
+    let mut game_key = match GameKeyQuery::get_one(db, gamekey_id).await? {
+        Some(g) => g,
+        None => {
+            ctx.send(
+                CreateReply::default()
+                    .content(format!("The key `{}` does not exist.", gamekey_id))
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+
+    let game = GameQuery::get_one(db, game_key.game_id).await?.expect(&format!("Game with id {} has been deleted.", game_key.game_id));
+
+    let reply = CreateReply::default()
+        .content(format!("Your key: `{}` for `{}`", game_key.value, game.title))
         .ephemeral(true);
 
     game_key.keystate = "Used".to_owned();
