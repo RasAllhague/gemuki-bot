@@ -3,7 +3,9 @@ use ::entity::{
     game_key::{self, Entity as GameKey},
     platform::{self, Entity as Platform},
 };
-use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use sea_orm::{
+    ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect,
+};
 
 pub struct GameQuery;
 
@@ -51,6 +53,10 @@ impl GameQuery {
         let game = Game::find_by_id(id).one(db).await?;
 
         Ok(game.is_some())
+    }
+
+    pub async fn count_total(db: &DbConn) -> Result<u64, DbErr> {
+        Game::find().count(db).await
     }
 }
 
@@ -181,7 +187,7 @@ impl GameKeyQuery {
     }
 
     /// Gets all unused gamekey ids
-    /// 
+    ///
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
@@ -195,6 +201,18 @@ impl GameKeyQuery {
             .await?;
 
         Ok(res)
+    }
+
+    pub async fn count_total(db: &DbConn) -> Result<u64, DbErr> {
+        GameKey::find().count(db).await
+    }
+
+    pub async fn count_unused(db: &DbConn) -> Result<u64, DbErr> {
+        GameKey::find().filter(game_key::Column::Keystate.eq("Unused")).count(db).await
+    }
+
+    pub async fn count_used(db: &DbConn) -> Result<u64, DbErr> {
+        GameKey::find().filter(game_key::Column::Keystate.eq("Used")).count(db).await
     }
 }
 
