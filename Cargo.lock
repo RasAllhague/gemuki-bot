@@ -1150,6 +1150,7 @@ dependencies = [
  "log",
  "migration",
  "poise",
+ "rand",
  "serde",
  "thiserror",
  "tokio",
