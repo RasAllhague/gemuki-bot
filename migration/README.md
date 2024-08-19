@@ -47,6 +47,7 @@
 | KEY | NAME | TYPE | SIZE | NULLABLE | NOTES |
 |---|---|---|---|---|---|
 | PK | id | integer | | N | AutoIncrement |
+| | keylist_id | int | | N | |
 | | target_user_id | bigint | | N | |
 | | access_right | ACCESSRIGHT | | N | [READ, WRITE, FULL, ADMIN] |
 | | create_date | timestamp | | N | |
