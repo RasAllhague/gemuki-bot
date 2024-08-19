@@ -100,8 +100,15 @@ impl GameKeyQuery {
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
-    pub async fn get_one(db: &DbConn, id: i32) -> Result<Option<game_key::Model>, DbErr> {
-        GameKey::find_by_id(id).one(db).await
+    pub async fn get_one(
+        db: &DbConn,
+        id: i32,
+        user_id: u64,
+    ) -> Result<Option<game_key::Model>, DbErr> {
+        GameKey::find_by_id(id)
+            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .one(db)
+            .await
     }
 
     /// Gets all gamekeys filtered by game.
@@ -109,9 +116,17 @@ impl GameKeyQuery {
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
-    pub async fn get_all_by_game(db: &DbConn, game_id: i32) -> Result<Vec<GameKeyModel>, DbErr> {
+    pub async fn get_all_by_game(
+        db: &DbConn,
+        game_id: i32,
+        user_id: u64,
+    ) -> Result<Vec<GameKeyModel>, DbErr> {
         let game_keys = GameKey::find()
-            .filter(game_key::Column::GameId.eq(game_id))
+            .filter(
+                game_key::Column::GameId
+                    .eq(game_id)
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .all(db)
             .await?;
 
@@ -191,11 +206,11 @@ impl GameKeyQuery {
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
-    pub async fn get_all_ids(db: &DbConn) -> Result<Vec<i32>, DbErr> {
+    pub async fn get_all_ids(db: &DbConn, user_id: u64) -> Result<Vec<i32>, DbErr> {
         let res: Vec<i32> = GameKey::find()
             .select_only()
             .column(game_key::Column::Id)
-            .filter(game_key::Column::Keystate.eq("Unused"))
+            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
             .into_tuple()
             .all(db)
             .await?;
@@ -207,12 +222,36 @@ impl GameKeyQuery {
         GameKey::find().count(db).await
     }
 
+    pub async fn count_total_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
+        GameKey::find().filter(game_key::Column::CreateUserId.eq(user_id)).count(db).await
+    }
+
     pub async fn count_unused(db: &DbConn) -> Result<u64, DbErr> {
-        GameKey::find().filter(game_key::Column::Keystate.eq("Unused")).count(db).await
+        GameKey::find()
+            .filter(game_key::Column::Keystate.eq("Unused"))
+            .count(db)
+            .await
+    }
+
+    pub async fn count_unused_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
+        GameKey::find()
+            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
+            .count(db)
+            .await
     }
 
     pub async fn count_used(db: &DbConn) -> Result<u64, DbErr> {
-        GameKey::find().filter(game_key::Column::Keystate.eq("Used")).count(db).await
+        GameKey::find()
+            .filter(game_key::Column::Keystate.eq("Used"))
+            .count(db)
+            .await
+    }
+
+    pub async fn count_used_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
+        GameKey::find()
+            .filter(game_key::Column::Keystate.eq("Used").and(game_key::Column::CreateUserId.eq(user_id)))
+            .count(db)
+            .await
     }
 }
 

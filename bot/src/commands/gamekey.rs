@@ -56,7 +56,6 @@ impl ToString for PlatformCoice {
 /// A command for managing games.
 #[poise::command(
     slash_command,
-    owners_only,
     subcommands("list", "details", "add", "remove", "edit", "claim", "claim_random")
 )]
 pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
@@ -65,7 +64,7 @@ pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
 }
 
 /// Lists all keys of a game. Contains severel filter options.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(slash_command)]
 pub async fn list(
     ctx: Context<'_>,
     #[description = "Name of the game you want to see keys of."]
@@ -83,7 +82,7 @@ pub async fn list(
             return Ok(());
         }
     };
-    let game_keys = GameKeyQuery::get_all_by_game(db, game.id).await?;
+    let game_keys = GameKeyQuery::get_all_by_game(db, game.id, ctx.author().id.get()).await?;
 
     let game_keys = match keystate {
         Some(choice) => game_keys
@@ -113,14 +112,14 @@ pub async fn list(
 }
 
 /// Displays the details of a gamekey except its key.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(slash_command)]
 pub async fn details(
     ctx: Context<'_>,
     #[description = "Id of the gamekey."] gamekey_id: i32,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let game_key = match GameKeyQuery::get_one(db, gamekey_id).await? {
+    let game_key = match GameKeyQuery::get_one(db, gamekey_id, ctx.author().id.get()).await? {
         Some(g) => g,
         None => {
             ctx.say(format!("The gamekey `{}` does not exist.", gamekey_id))
@@ -181,7 +180,7 @@ pub async fn details(
 }
 
 /// Adds a gamekey for to a game.
-#[poise::command(slash_command, owners_only, dm_only)]
+#[poise::command(slash_command, dm_only)]
 pub async fn add(
     ctx: Context<'_>,
     #[description = "Name of the game."]
@@ -252,14 +251,14 @@ pub async fn add(
 }
 
 /// Removes a gamekey from a game. Use at own risk as the key gets deleted.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(slash_command)]
 pub async fn remove(
     ctx: Context<'_>,
     #[description = "Id of the gamekey to delete"] gamekey_id: i32,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let deleted_keys = GameKeyMutation::delete(db, gamekey_id).await?;
+    let deleted_keys = GameKeyMutation::delete(db, gamekey_id, ctx.author().id.get()).await?;
 
     ctx.reply(format!("Deleted `{}` keys.", deleted_keys.rows_affected))
         .await?;
@@ -270,7 +269,7 @@ pub async fn remove(
 }
 
 /// Edits the details of a game key.
-#[poise::command(slash_command, owners_only)]
+#[poise::command(slash_command)]
 pub async fn edit(
     ctx: Context<'_>,
     #[description = "Id of the key to edit."] id: i32,
@@ -300,7 +299,7 @@ pub async fn edit(
         }
     }
 
-    if let Some(game_key) = GameKeyQuery::get_one(db, id).await? {
+    if let Some(game_key) = GameKeyQuery::get_one(db, id, ctx.author().id.get()).await? {
         let game_id = if let Some(game) = game {
             match GameQuery::get_by_title(db, &game).await? {
                 Some(g) => g.id,
@@ -382,7 +381,7 @@ pub async fn claim(
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let mut game_key = match GameKeyQuery::get_one(db, gamekey_id).await? {
+    let mut game_key = match GameKeyQuery::get_one(db, gamekey_id, ctx.author().id.get()).await? {
         Some(g) => g,
         None => {
             ctx.send(
@@ -420,13 +419,16 @@ pub async fn claim(
 }
 
 /// Claims a key. Sends the key value hidden behind a spoiler into the channel.
-#[poise::command(slash_command, owners_only, name_localized("de", "claim-random"), name_localized("en-US", "claim-random"))]
-pub async fn claim_random(
-    ctx: Context<'_>,
-) -> Result<(), PoiseError> {
+#[poise::command(
+    slash_command,
+    owners_only,
+    name_localized("de", "claim-random"),
+    name_localized("en-US", "claim-random")
+)]
+pub async fn claim_random(ctx: Context<'_>) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let gamekeys = GameKeyQuery::get_all_ids(db).await?;
+    let gamekeys = GameKeyQuery::get_all_ids(db, ctx.author().id.get()).await?;
 
     if gamekeys.is_empty() {
         ctx.send(
@@ -445,7 +447,7 @@ pub async fn claim_random(
     };
     let gamekey_id = gamekeys[random_number];
 
-    let mut game_key = match GameKeyQuery::get_one(db, gamekey_id).await? {
+    let mut game_key = match GameKeyQuery::get_one(db, gamekey_id, ctx.author().id.get()).await? {
         Some(g) => g,
         None => {
             ctx.send(
@@ -458,10 +460,18 @@ pub async fn claim_random(
         }
     };
 
-    let game = GameQuery::get_one(db, game_key.game_id).await?.expect(&format!("Game with id {} has been deleted.", game_key.game_id));
+    let game = GameQuery::get_one(db, game_key.game_id)
+        .await?
+        .expect(&format!(
+            "Game with id {} has been deleted.",
+            game_key.game_id
+        ));
 
     let reply = CreateReply::default()
-        .content(format!("Your key: `{}` for `{}`", game_key.value, game.title))
+        .content(format!(
+            "Your key: `{}` for `{}`",
+            game_key.value, game.title
+        ))
         .ephemeral(true);
 
     game_key.keystate = "Used".to_owned();
