@@ -2,4 +2,7 @@
 
 pub use super::game::Entity as Game;
 pub use super::game_key::Entity as GameKey;
+pub use super::keylist::Entity as Keylist;
+pub use super::keylist_access::Entity as KeylistAccess;
+pub use super::keylist_key::Entity as KeylistKey;
 pub use super::platform::Entity as Platform;

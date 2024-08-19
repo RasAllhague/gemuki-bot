@@ -4,4 +4,7 @@ pub mod prelude;
 
 pub mod game;
 pub mod game_key;
+pub mod keylist;
+pub mod keylist_access;
+pub mod keylist_key;
 pub mod platform;
