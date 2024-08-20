@@ -6,7 +6,7 @@ use ::entity::{
     platform::{self, Entity as Platform},
 };
 use sea_orm::{
-    ColumnTrait, DbConn, DbErr, EntityTrait, FromQueryResult, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect, QueryTrait
+    ColumnTrait, DbConn, DbErr, EntityTrait, FromQueryResult, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect,
 };
 
 #[derive(Clone, Debug, FromQueryResult)]
