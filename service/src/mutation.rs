@@ -131,7 +131,10 @@ impl GameKeyMutation {
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn delete(db: &DbConn, id: i32, user_id: u64) -> Result<DeleteResult, DbErr> {
-        GameKey::delete_by_id(id).filter(game_key::Column::CreateUserId.eq(user_id)).exec(db).await
+        GameKey::delete_by_id(id)
+            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .exec(db)
+            .await
     }
 
     /// Deletes all game keys by game id.

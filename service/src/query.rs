@@ -6,7 +6,8 @@ use ::entity::{
     platform::{self, Entity as Platform},
 };
 use sea_orm::{
-    ColumnTrait, DbConn, DbErr, EntityTrait, FromQueryResult, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect,
+    ColumnTrait, DbConn, DbErr, EntityTrait, FromQueryResult, ModelTrait, PaginatorTrait,
+    QueryFilter, QuerySelect,
 };
 
 #[derive(Clone, Debug, FromQueryResult)]
@@ -75,7 +76,8 @@ impl GameQuery {
             .column_as(game_key::Column::Id.count(), "key_count")
             .left_join(GameKey)
             .into_model::<GameDetailModel>()
-            .all(db).await
+            .all(db)
+            .await
     }
 }
 

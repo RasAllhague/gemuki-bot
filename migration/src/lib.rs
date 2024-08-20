@@ -6,7 +6,6 @@ mod m20240723_102800_game_image_link;
 mod m20240725_122713_game_key_notes;
 mod m20240819_141945_create_keylist;
 
-
 pub struct Migrator;
 
 #[async_trait::async_trait]
