@@ -103,7 +103,7 @@ pub async fn list(
     };
 
     if !game_keys.is_empty() {
-        paginate::paginate_game_keys(ctx, &game_keys).await?;
+        paginate::create_pagination(ctx, &game_keys).await?;
     } else {
         ctx.reply("No games found.").await?;
     }

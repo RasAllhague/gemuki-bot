@@ -5,6 +5,7 @@ mod paginate;
 use async_mutex::Mutex;
 use cache::Cache;
 use chrono::Duration;
+use commands::keylist::keylist;
 use commands::statistic::statistics;
 use commands::{game::game, gamekey::gamekey, version::version};
 use migration::sea_orm::DatabaseConnection;
@@ -35,7 +36,7 @@ async fn run() -> Result<(), PoiseError> {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![version(), game(), gamekey(), statistics()],
+            commands: vec![version(), game(), gamekey(), statistics(), keylist()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
