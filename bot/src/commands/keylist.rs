@@ -1,5 +1,7 @@
+use chrono::Utc;
 use entity::keylist;
-use gemuki_service::query::KeylistQuery;
+use gemuki_service::{mutation::KeylistMutation, query::KeylistQuery};
+use log::error;
 use migration::{sea_orm::DbConn, DbErr};
 
 use crate::{paginate, Data, PoiseError};
@@ -61,6 +63,28 @@ pub async fn create(
     #[description = "Name of the keylist. Must be unique to your user."] name: String,
     #[description = "Description of the keylist. Optional."] description: Option<String>,
 ) -> Result<(), PoiseError> {
-    ctx.say("Not yet implemented").await?;
+    let db = &ctx.data().conn;
+
+    let model = keylist::Model {
+        id: 0,
+        name,
+        description,
+        owner_id: ctx.author().id.into(),
+        create_date: Utc::now().naive_utc().to_string(),
+        create_user_id: ctx.author().id.into(),
+        modify_date: None,
+        modify_user_id: None,
+    };
+
+    let message = match KeylistMutation::create(db, model).await {
+        Ok(_) => "Successfully create keylist.",
+        Err(why) => {
+            error!("Could not insert new keylist because of '{}'.", why);
+            "Could not create keylist because of an internal server error."
+        }
+    };
+
+    ctx.reply(message).await?;
+
     Ok(())
 }
