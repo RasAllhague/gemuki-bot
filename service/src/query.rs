@@ -331,6 +331,10 @@ pub struct KeylistQuery;
 
 impl KeylistQuery {
     /// Gets all owned keylists.
+    /// 
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_owned_keylists(
         db: &DbConn,
         user_id: u64,
@@ -342,6 +346,10 @@ impl KeylistQuery {
     }
 
     /// Gets all assigned keylists.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_assigned_keylists(
         db: &DbConn,
         user_id: u64,
@@ -354,6 +362,10 @@ impl KeylistQuery {
     }
 
     /// Gets all assigned and owned keylists.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
     pub async fn get_keylists(db: &DbConn, user_id: u64) -> Result<Vec<keylist::Model>, DbErr> {
         Keylist::find()
             .left_join(KeylistAccess)
@@ -366,10 +378,3 @@ impl KeylistQuery {
             .await
     }
 }
-/*
-SELECT *
-FROM keylist AS k
-LEFT JOIN keylist_access AS ka
-ON k.id = ka.keylist_id
-WHERE ka.target_user_id = 0;
-*/
