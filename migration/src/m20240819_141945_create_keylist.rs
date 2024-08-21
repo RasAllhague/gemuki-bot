@@ -21,7 +21,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Keylist::Name).string_len(50).not_null())
                     .col(ColumnDef::new(Keylist::Description).string_len(255).null())
-                    .col(ColumnDef::new(Keylist::OwnerId).big_integer().null())
+                    .col(ColumnDef::new(Keylist::OwnerId).big_integer().not_null())
                     .col(ColumnDef::new(Keylist::CreateDate).timestamp().not_null())
                     .col(
                         ColumnDef::new(Keylist::CreateUserId)
@@ -30,6 +30,14 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Keylist::ModifyDate).timestamp().null())
                     .col(ColumnDef::new(Keylist::ModifyUserId).big_integer().null())
+                    .index(
+                        Index::create()
+                            .name("idx-name-owner")
+                            .table(Keylist::Table)
+                            .col(Keylist::Name)
+                            .col(Keylist::OwnerId)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -82,6 +90,14 @@ impl MigrationTrait for Migration {
                             .from(KeylistAccess::Table, KeylistAccess::KeylistId)
                             .to(Keylist::Table, Keylist::Id),
                     )
+                    .index(
+                        Index::create()
+                            .name("idx-keylist-targetuser")
+                            .table(KeylistAccess::Table)
+                            .col(KeylistAccess::KeylistId)
+                            .col(KeylistAccess::TargetUserId)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -117,8 +133,16 @@ impl MigrationTrait for Migration {
                     )
                     .foreign_key(
                         ForeignKey::create()
-                            .from(KeylistKey::Table, KeylistKey::KeylistId)
+                            .from(KeylistKey::Table, KeylistKey::GamekeyId)
                             .to(GameKey::Table, GameKey::Id),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx-keylist-gamekey")
+                            .table(KeylistKey::Table)
+                            .col(KeylistKey::KeylistId)
+                            .col(KeylistKey::GamekeyId)
+                            .unique(),
                     )
                     .to_owned(),
             )
