@@ -10,7 +10,7 @@ pub struct Model {
     pub id: i32,
     pub name: String,
     pub description: Option<String>,
-    pub owner_id: Option<i64>,
+    pub owner_id: i64,
     pub create_date: String,
     pub create_user_id: i64,
     pub modify_date: Option<String>,
