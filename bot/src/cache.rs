@@ -3,13 +3,13 @@ use gemuki_service::query::GameQuery;
 use log::info;
 use migration::sea_orm::DbConn;
 
-pub struct Cache {
+pub struct GameTitleCache {
     refresh_interval: Duration,
     last_refresh: NaiveDateTime,
     cache: Vec<String>,
 }
 
-impl Cache {
+impl GameTitleCache {
     pub async fn init(db: &DbConn, refresh_interval: Duration) -> Self {
         let titles = Self::get_game_titles(db).await;
 
@@ -54,3 +54,4 @@ impl Cache {
         info!("Cache has been updated forcefully.");
     }
 }
+

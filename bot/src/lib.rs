@@ -3,7 +3,7 @@ pub mod commands;
 mod paginate;
 
 use async_mutex::Mutex;
-use cache::Cache;
+use cache::GameTitleCache;
 use chrono::Duration;
 use commands::statistic::statistics;
 use commands::{game::game, gamekey::gamekey, version::version};
@@ -15,7 +15,7 @@ pub type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 
 pub struct Data {
     conn: DatabaseConnection,
-    cache: Mutex<Cache>,
+    game_title_cache: Mutex<GameTitleCache>,
 }
 
 #[tokio::main]
@@ -31,7 +31,7 @@ async fn run() -> Result<(), PoiseError> {
     let conn = Database::connect(&db_url).await?;
     Migrator::up(&conn, None).await?;
 
-    let cache = Cache::init(&conn, Duration::seconds(3600)).await;
+    let cache = GameTitleCache::init(&conn, Duration::seconds(3600)).await;
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -43,7 +43,7 @@ async fn run() -> Result<(), PoiseError> {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     conn,
-                    cache: Mutex::new(cache),
+                    game_title_cache: Mutex::new(cache),
                 })
             })
         })

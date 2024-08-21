@@ -118,7 +118,7 @@ pub async fn add(
         }
     };
 
-    ctx.data().cache.lock().await.force_update(db).await;
+    ctx.data().game_title_cache.lock().await.force_update(db).await;
 
     ctx.reply(message).await?;
 
@@ -166,7 +166,7 @@ pub async fn edit(
             }
         };
 
-        ctx.data().cache.lock().await.force_update(db).await;
+        ctx.data().game_title_cache.lock().await.force_update(db).await;
 
         ctx.reply(message).await?;
     } else {
