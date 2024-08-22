@@ -115,7 +115,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(KeylistKey::KeylistId).integer().not_null())
-                    .col(ColumnDef::new(KeylistKey::GamekeyId).integer().null())
+                    .col(ColumnDef::new(KeylistKey::GamekeyId).integer().not_null())
                     .col(
                         ColumnDef::new(KeylistKey::CreateDate)
                             .timestamp()
