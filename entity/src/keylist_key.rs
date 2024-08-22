@@ -9,7 +9,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub keylist_id: i32,
-    pub gamekey_id: Option<i32>,
+    pub gamekey_id: i32,
     pub create_date: String,
     pub create_user_id: i64,
 }
