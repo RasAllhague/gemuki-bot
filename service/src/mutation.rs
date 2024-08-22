@@ -233,3 +233,24 @@ impl KeylistMutation {
             .await
     }
 }
+
+pub struct KeylistKeyMutation;
+
+impl KeylistKeyMutation {
+    /// Creates a new keylist key.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
+    pub async fn create(db: &DbConn, model: keylist_key::Model) -> Result<keylist_key::Model, DbErr> {
+        keylist_key::ActiveModel {
+            keylist_id: Set(model.keylist_id),
+            gamekey_id: Set(model.gamekey_id),
+            create_date: Set(model.create_date),
+            create_user_id: Set(model.create_user_id),
+            ..Default::default()
+        }
+        .insert(db)
+        .await
+    }
+}

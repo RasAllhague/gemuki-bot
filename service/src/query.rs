@@ -331,7 +331,7 @@ pub struct KeylistQuery;
 
 impl KeylistQuery {
     /// Gets all owned keylists.
-    /// 
+    ///
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
@@ -375,6 +375,37 @@ impl KeylistQuery {
                     .or(keylist::Column::OwnerId.eq(user_id)),
             )
             .all(db)
+            .await
+    }
+
+    pub async fn get_one(
+        db: &DbConn,
+        keylist_id: i32,
+        user_id: u64,
+    ) -> Result<Option<keylist::Model>, DbErr> {
+        Keylist::find_by_id(keylist_id)
+            .left_join(KeylistAccess)
+            .filter(
+                keylist_access::Column::TargetUserId
+                    .eq(user_id)
+                    .or(keylist::Column::OwnerId.eq(user_id)),
+            )
+            .one(db)
+            .await
+    }
+
+    pub async fn get_by_name(
+        db: &DbConn,
+        name: &str,
+        user_id: i64,
+    ) -> Result<Option<keylist::Model>, DbErr> {
+        Keylist::find()
+            .filter(
+                keylist::Column::Name
+                    .eq(name)
+                    .and(keylist::Column::OwnerId.eq(user_id)),
+            )
+            .one(db)
             .await
     }
 }
