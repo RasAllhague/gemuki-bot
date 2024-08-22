@@ -1,4 +1,4 @@
-use crate::{commands::autocomplete_game, paginate, Data, PoiseError};
+use crate::{commands::autocomplete_game, paginate, steam, Data, PoiseError};
 use chrono::Utc;
 use entity::game;
 use gemuki_service::{
@@ -17,7 +17,7 @@ type Context<'a> = poise::Context<'a, Data, PoiseError>;
 #[poise::command(
     slash_command,
     owners_only,
-    subcommands("list", "details", "add", "edit", "remove")
+    subcommands("list", "details", "add", "edit", "remove", "quicksetup")
 )]
 pub async fn game(ctx: Context<'_>) -> Result<(), PoiseError> {
     ctx.say("How did you manage to do this?").await?;
@@ -118,7 +118,67 @@ pub async fn add(
         }
     };
 
-    ctx.data().cache.lock().await.force_update(db).await;
+    ctx.data().game_title_cache.lock().await.force_update(db).await;
+
+    ctx.reply(message).await?;
+
+    Ok(())
+}
+
+/// Creates a new game based on steamshop info.
+#[poise::command(slash_command, owners_only)]
+pub async fn quicksetup(
+    ctx: Context<'_>,
+    #[description = "Title of the game you want to add."] title: String,
+) -> Result<(), PoiseError> {
+    let db = &ctx.data().conn;
+
+    if let Some(_) = GameQuery::get_by_title(db, &title).await? {
+        ctx.reply("Could not add game because it already exists.")
+            .await?;
+        return Ok(());
+    };
+
+    let mut cache = ctx.data().steam_app_cache.lock().await;
+    cache.update().await;
+
+    let app = match cache.find_by_name(&title) {
+        Some(app) => app,
+        None => {
+            ctx.reply("The title you search for does not exist on steam.").await?;
+            return Ok(());
+        }
+    };
+
+    let app_details = match steam::get_app_details(app.appid()).await {
+        Ok(details) => details,
+        Err(why) => {
+            error!("Could not retrieve game data from steam, {:?}", why);
+            ctx.reply("Could not retrieve game data from steam.").await?;
+            return Ok(());
+        }
+    };
+
+    let model = game::Model {
+        id: 0,
+        title: app_details.name.clone(),
+        description: Some(app_details.short_description.clone()),
+        image_link: Some(app_details.header_image.clone()),
+        create_date: Utc::now().naive_utc().to_string(),
+        create_user_id: ctx.author().id.into(),
+        modify_date: None,
+        modify_user_id: None,
+    };
+
+    let message = match GameMutation::create(db, model).await {
+        Ok(_) => "Successfully added game.",
+        Err(why) => {
+            error!("Could not insert new game because of '{}'.", why);
+            "Could not add game because of an internal server error."
+        }
+    };
+
+    ctx.data().game_title_cache.lock().await.force_update(db).await;
 
     ctx.reply(message).await?;
 
@@ -166,7 +226,7 @@ pub async fn edit(
             }
         };
 
-        ctx.data().cache.lock().await.force_update(db).await;
+        ctx.data().game_title_cache.lock().await.force_update(db).await;
 
         ctx.reply(message).await?;
     } else {

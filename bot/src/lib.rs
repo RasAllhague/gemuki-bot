@@ -1,9 +1,10 @@
-pub mod cache;
-pub mod commands;
+mod cache;
+mod commands;
 mod paginate;
+mod steam;
 
 use async_mutex::Mutex;
-use cache::Cache;
+use cache::{GameTitleCache, SteamAppCache};
 use chrono::Duration;
 use commands::statistic::statistics;
 use commands::{game::game, gamekey::gamekey, version::version};
@@ -15,7 +16,8 @@ pub type PoiseError = Box<dyn std::error::Error + Send + Sync>;
 
 pub struct Data {
     conn: DatabaseConnection,
-    cache: Mutex<Cache>,
+    game_title_cache: Mutex<GameTitleCache>,
+    steam_app_cache: Mutex<SteamAppCache>,
 }
 
 #[tokio::main]
@@ -31,7 +33,8 @@ async fn run() -> Result<(), PoiseError> {
     let conn = Database::connect(&db_url).await?;
     Migrator::up(&conn, None).await?;
 
-    let cache = Cache::init(&conn, Duration::seconds(3600)).await;
+    let title_cache = GameTitleCache::init(&conn, Duration::seconds(3600)).await;
+    let app_cache = SteamAppCache::init(Duration::seconds(3600)).await;
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -43,7 +46,8 @@ async fn run() -> Result<(), PoiseError> {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     conn,
-                    cache: Mutex::new(cache),
+                    game_title_cache: Mutex::new(title_cache),
+                    steam_app_cache: Mutex::new(app_cache),
                 })
             })
         })
