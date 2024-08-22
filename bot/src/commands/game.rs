@@ -10,7 +10,6 @@ use poise::{
     serenity_prelude::{Color, CreateEmbed},
     CreateReply,
 };
-use serde::de;
 
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
