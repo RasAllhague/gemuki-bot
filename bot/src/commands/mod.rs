@@ -13,7 +13,7 @@ async fn autocomplete_game<'a>(
     ctx: Context<'_>,
     partial: &'a str,
 ) -> impl Stream<Item = String> + 'a {
-    let mut cache = ctx.data().cache.lock().await;
+    let mut cache = ctx.data().game_title_cache.lock().await;
     let db = &ctx.data().conn;
 
     cache.update(db).await;
