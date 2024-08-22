@@ -10,6 +10,7 @@ use poise::{
     serenity_prelude::{Color, CreateEmbed},
     CreateReply,
 };
+use serde::de;
 
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
@@ -151,7 +152,11 @@ pub async fn quicksetup(
     };
 
     let app_details = match steam::get_app_details(app.appid()).await {
-        Ok(details) => details,
+        Ok(None) => {
+            ctx.reply("Could not retrieve game data from steam.").await?;
+            return Ok(());
+        },
+        Ok(details) => details.unwrap(),
         Err(why) => {
             error!("Could not retrieve game data from steam, {:?}", why);
             ctx.reply("Could not retrieve game data from steam.").await?;
