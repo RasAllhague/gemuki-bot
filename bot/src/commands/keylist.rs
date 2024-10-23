@@ -62,7 +62,7 @@ pub async fn create(
         name,
         description,
         owner_id: ctx.author().id.into(),
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
@@ -205,7 +205,7 @@ async fn create_keylist_key(
         id: 0,
         keylist_id,
         gamekey_id,
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id,
     };
 

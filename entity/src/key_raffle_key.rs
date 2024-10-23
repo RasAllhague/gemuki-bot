@@ -4,11 +4,11 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "keylist_key")]
+#[sea_orm(table_name = "key_raffle_key")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub keylist_id: i32,
+    pub key_raffle_id: i32,
     pub gamekey_id: i32,
     pub create_date: DateTimeUtc,
     pub create_user_id: i64,
@@ -25,13 +25,13 @@ pub enum Relation {
     )]
     GameKey,
     #[sea_orm(
-        belongs_to = "super::keylist::Entity",
-        from = "Column::KeylistId",
-        to = "super::keylist::Column::Id",
+        belongs_to = "super::key_raffle::Entity",
+        from = "Column::KeyRaffleId",
+        to = "super::key_raffle::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
-    Keylist,
+    KeyRaffle,
 }
 
 impl Related<super::game_key::Entity> for Entity {
@@ -40,9 +40,9 @@ impl Related<super::game_key::Entity> for Entity {
     }
 }
 
-impl Related<super::keylist::Entity> for Entity {
+impl Related<super::key_raffle::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Keylist.def()
+        Relation::KeyRaffle.def()
     }
 }
 

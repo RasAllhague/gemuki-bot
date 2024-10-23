@@ -4,35 +4,31 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "keylist_access")]
+#[sea_orm(table_name = "key_raffle_winner")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub keylist_id: i32,
-    pub target_user_id: i64,
-    #[sea_orm(column_type = "custom(\"enum_text\")")]
-    pub access_right: String,
+    pub winner_id: i64,
+    pub key_raffle_key_id: i32,
     pub create_date: DateTimeUtc,
     pub create_user_id: i64,
-    pub modify_date: Option<DateTimeUtc>,
-    pub modify_user_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::keylist::Entity",
-        from = "Column::KeylistId",
-        to = "super::keylist::Column::Id",
+        belongs_to = "super::key_raffle::Entity",
+        from = "Column::KeyRaffleKeyId",
+        to = "super::key_raffle::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"
     )]
-    Keylist,
+    KeyRaffle,
 }
 
-impl Related<super::keylist::Entity> for Entity {
+impl Related<super::key_raffle::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Keylist.def()
+        Relation::KeyRaffle.def()
     }
 }
 

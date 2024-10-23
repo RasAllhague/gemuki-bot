@@ -20,11 +20,14 @@ impl PaginationEmbed for GameKeyModel {
             .description(game.description.unwrap_or("None".to_owned()))
             .field("Platform", platform.name, true)
             .field("State", game_key.keystate, true)
-            .field("Create date", game_key.create_date, false)
+            .field("Create date", game_key.create_date.to_string(), false)
             .field("Create user id", game_key.create_user_id.to_string(), false)
             .field(
                 "Modify date",
-                game_key.modify_date.unwrap_or("None".to_owned()),
+                game_key
+                    .modify_date
+                    .map(|x| x.to_string())
+                    .unwrap_or("None".to_owned()),
                 false,
             )
             .field(

@@ -104,7 +104,7 @@ pub async fn add(
         title,
         description,
         image_link: image_link,
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
@@ -168,7 +168,7 @@ pub async fn quicksetup(
         title: app_details.name.clone(),
         description: Some(app_details.short_description.clone()),
         image_link: Some(app_details.header_image.clone()),
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
@@ -218,7 +218,7 @@ pub async fn edit(
             image_link: image_link.or(game.image_link),
             create_date: game.create_date,
             create_user_id: game.create_user_id,
-            modify_date: Some(Utc::now().naive_utc().to_string()),
+            modify_date: Some(Utc::now()),
             modify_user_id: Some(ctx.author().id.into()),
         };
 
