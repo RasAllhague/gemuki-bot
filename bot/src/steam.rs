@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ApplistResponse {
@@ -73,22 +74,12 @@ pub struct PriceOverview {
     pub final_formatted: String,
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum SteamError {
-    Reqwest(reqwest::Error),
-    Serde(serde_json::Error),
-}
-
-impl From<reqwest::Error> for SteamError {
-    fn from(value: reqwest::Error) -> Self {
-        SteamError::Reqwest(value)
-    }
-}
-
-impl From<serde_json::Error> for SteamError {
-    fn from(value: serde_json::Error) -> Self {
-        SteamError::Serde(value)
-    }
+    #[error("request to steam failed")]
+    Reqwest(#[from] reqwest::Error),
+    #[error("failed to parse steam json")]
+    Serde(#[from] serde_json::Error),
 }
 
 pub async fn get_app_details(appid: u32) -> Result<Option<AppDetails>, SteamError> {
