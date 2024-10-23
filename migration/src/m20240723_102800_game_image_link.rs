@@ -1,4 +1,7 @@
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{
+    prelude::*,
+    schema::{string_len, string_len_null},
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -10,9 +13,7 @@ impl MigrationTrait for Migration {
             .alter_table(
                 TableAlterStatement::new()
                     .table(Game::Table)
-                    .add_column_if_not_exists(
-                        ColumnDef::new(Game::ImageLink).string_len(500).null(),
-                    )
+                    .add_column_if_not_exists(string_len_null(Game::ImageLink, 500))
                     .to_owned(),
             )
             .await
