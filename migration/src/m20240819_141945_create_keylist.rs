@@ -1,5 +1,5 @@
 use sea_orm::{EnumIter, Iterable};
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -12,24 +12,14 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Keylist::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Keylist::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(Keylist::Name).string_len(50).not_null())
-                    .col(ColumnDef::new(Keylist::Description).string_len(255).null())
-                    .col(ColumnDef::new(Keylist::OwnerId).big_integer().not_null())
-                    .col(ColumnDef::new(Keylist::CreateDate).timestamp().not_null())
-                    .col(
-                        ColumnDef::new(Keylist::CreateUserId)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .col(ColumnDef::new(Keylist::ModifyDate).timestamp().null())
-                    .col(ColumnDef::new(Keylist::ModifyUserId).big_integer().null())
+                    .col(pk_auto(Keylist::Id))
+                    .col(string_len(Keylist::Name, 50))
+                    .col(string_len_null(Keylist::Description, 255))
+                    .col(big_integer(Keylist::OwnerId))
+                    .col(timestamp(Keylist::CreateDate))
+                    .col(big_integer(Keylist::CreateUserId))
+                    .col(timestamp_null(Keylist::ModifyDate))
+                    .col(big_integer_null(Keylist::ModifyUserId))
                     .index(
                         Index::create()
                             .name("idx-name-owner")
@@ -47,44 +37,18 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(KeylistAccess::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(KeylistAccess::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistAccess::KeylistId)
-                            .integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistAccess::TargetUserId)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistAccess::AccessRight)
-                            .enumeration(Alias::new("access_right"), AccessRight::iter())
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistAccess::CreateDate)
-                            .timestamp()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistAccess::CreateUserId)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .col(ColumnDef::new(KeylistAccess::ModifyDate).timestamp().null())
-                    .col(
-                        ColumnDef::new(KeylistAccess::ModifyUserId)
-                            .big_integer()
-                            .null(),
-                    )
+                    .col(pk_auto(KeylistAccess::Id))
+                    .col(integer(KeylistAccess::KeylistId))
+                    .col(big_integer(KeylistAccess::TargetUserId))
+                    .col(enumeration(
+                        KeylistAccess::AccessRight,
+                        Alias::new("access_right"),
+                        AccessRight::iter(),
+                    ))
+                    .col(timestamp(KeylistAccess::CreateDate))
+                    .col(big_integer(KeylistAccess::CreateUserId))
+                    .col(timestamp_null(KeylistAccess::ModifyDate))
+                    .col(big_integer_null(KeylistAccess::ModifyUserId))
                     .foreign_key(
                         ForeignKey::create()
                             .from(KeylistAccess::Table, KeylistAccess::KeylistId)
@@ -107,25 +71,11 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(KeylistKey::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(KeylistKey::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(KeylistKey::KeylistId).integer().not_null())
-                    .col(ColumnDef::new(KeylistKey::GamekeyId).integer().not_null())
-                    .col(
-                        ColumnDef::new(KeylistKey::CreateDate)
-                            .timestamp()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(KeylistKey::CreateUserId)
-                            .big_integer()
-                            .not_null(),
-                    )
+                    .col(pk_auto(KeylistKey::Id))
+                    .col(integer(KeylistKey::KeylistId))
+                    .col(integer(KeylistKey::GamekeyId))
+                    .col(timestamp(KeylistKey::CreateDate))
+                    .col(big_integer(KeylistKey::CreateUserId))
                     .foreign_key(
                         ForeignKey::create()
                             .from(KeylistKey::Table, KeylistKey::KeylistId)
