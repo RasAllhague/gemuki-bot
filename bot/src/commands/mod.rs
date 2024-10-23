@@ -3,6 +3,7 @@ pub mod gamekey;
 pub mod keylist;
 pub mod statistic;
 pub mod version;
+pub mod raffle;
 
 use crate::{Data, PoiseError};
 use gemuki_service::query::KeylistQuery;
