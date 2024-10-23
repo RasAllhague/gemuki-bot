@@ -16,6 +16,8 @@ impl MigrationTrait for Migration {
                     .col(string_len_null(KeyRaffle::Description, 255))
                     .col(string_len_null(KeyRaffle::ImageLink, 255))
                     .col(big_integer(KeyRaffle::OwnerId))
+                    .col(big_integer_null(KeyRaffle::GuildId))
+                    .col(big_integer_null(KeyRaffle::ChannelId))
                     .col(timestamp_null(KeyRaffle::StartAt))
                     .col(timestamp_null(KeyRaffle::EndAt))
                     .col(integer_null(KeyRaffle::DurationInSeconds))
@@ -123,6 +125,8 @@ enum KeyRaffle {
     Description,
     ImageLink,
     OwnerId,
+    GuildId,
+    ChannelId,
     StartAt,
     EndAt,
     DurationInSeconds,
