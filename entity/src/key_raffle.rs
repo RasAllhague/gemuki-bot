@@ -12,6 +12,8 @@ pub struct Model {
     pub description: Option<String>,
     pub image_link: Option<String>,
     pub owner_id: i64,
+    pub guild_id: Option<i64>,
+    pub channel_id: Option<i64>,
     pub start_at: Option<DateTimeUtc>,
     pub end_at: Option<DateTimeUtc>,
     pub duration_in_seconds: Option<i32>,
