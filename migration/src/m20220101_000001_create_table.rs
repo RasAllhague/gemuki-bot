@@ -1,5 +1,5 @@
 use sea_orm::{EnumIter, Iterable};
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -12,24 +12,13 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Game::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Game::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(
-                        ColumnDef::new(Game::Title)
-                            .string_len(255)
-                            .not_null()
-                            .unique_key(),
-                    )
-                    .col(ColumnDef::new(Game::Description).string_len(500).null())
-                    .col(ColumnDef::new(Game::CreateDate).timestamp().not_null())
-                    .col(ColumnDef::new(Game::CreateUserId).big_integer().not_null())
-                    .col(ColumnDef::new(Game::ModifyDate).timestamp().null())
-                    .col(ColumnDef::new(Game::ModifyUserId).big_integer().null())
+                    .col(pk_auto(Game::Id))
+                    .col(string_len(Game::Title, 255))
+                    .col(string_len_null(Game::Description, 500))
+                    .col(timestamp(Game::CreateDate))
+                    .col(big_integer(Game::CreateUserId))
+                    .col(timestamp_null(Game::ModifyDate))
+                    .col(big_integer_null(Game::ModifyUserId))
                     .to_owned(),
             )
             .await?;
@@ -38,35 +27,20 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(GameKey::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(GameKey::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(GameKey::GameId).integer().not_null())
-                    .col(ColumnDef::new(GameKey::PlatformId).integer().not_null())
-                    .col(
-                        ColumnDef::new(GameKey::Value)
-                            .string_len(255)
-                            .not_null()
-                            .unique_key(),
-                    )
-                    .col(
-                        ColumnDef::new(GameKey::Keystate)
-                            .enumeration(Alias::new("keystate"), KeyState::iter())
-                            .not_null(),
-                    )
-                    .col(ColumnDef::new(GameKey::PageLink).string_len(500).null())
-                    .col(ColumnDef::new(GameKey::CreateDate).timestamp().not_null())
-                    .col(
-                        ColumnDef::new(GameKey::CreateUserId)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .col(ColumnDef::new(GameKey::ModifyDate).timestamp().null())
-                    .col(ColumnDef::new(GameKey::ModifyUserId).big_integer().null())
+                    .col(pk_auto(GameKey::Id))
+                    .col(integer(GameKey::GameId))
+                    .col(integer(GameKey::PlatformId))
+                    .col(string_len(GameKey::Value, 255))
+                    .col(enumeration(
+                        GameKey::Keystate,
+                        Alias::new("keystate"),
+                        KeyState::iter(),
+                    ))
+                    .col(string_len_null(GameKey::PageLink, 500))
+                    .col(timestamp(GameKey::CreateDate))
+                    .col(big_integer(GameKey::CreateUserId))
+                    .col(timestamp_null(GameKey::ModifyDate))
+                    .col(big_integer_null(GameKey::ModifyUserId))
                     .foreign_key(
                         ForeignKey::create()
                             .from(GameKey::Table, GameKey::GameId)
@@ -85,20 +59,9 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Platform::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Platform::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(
-                        ColumnDef::new(Platform::Name)
-                            .string_len(255)
-                            .not_null()
-                            .unique_key(),
-                    )
-                    .col(ColumnDef::new(Platform::StoreLink).string_len(500).null())
+                    .col(pk_auto(Platform::Id))
+                    .col(string_len(Platform::Name, 255).unique_key())
+                    .col(string_len_null(Platform::StoreLink, 500))
                     .to_owned(),
             )
             .await?;
