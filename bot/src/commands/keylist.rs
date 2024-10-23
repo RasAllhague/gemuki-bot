@@ -27,18 +27,6 @@ pub async fn keylist(ctx: Context<'_>) -> Result<(), PoiseError> {
     Ok(())
 }
 
-pub async fn get_keylists(
-    db: &DbConn,
-    user_id: u64,
-    origin: KeylistOrigin,
-) -> Result<Vec<keylist::Model>, DbErr> {
-    match origin {
-        KeylistOrigin::All => KeylistQuery::get_keylists(db, user_id).await,
-        KeylistOrigin::Owned => KeylistQuery::get_owned_keylists(db, user_id).await,
-        KeylistOrigin::Assigned => KeylistQuery::get_assigned_keylists(db, user_id).await,
-    }
-}
-
 /// Lists all keylists a user has access to in a paginated result.
 #[poise::command(slash_command)]
 pub async fn list(
@@ -162,6 +150,18 @@ pub async fn add(
     }
 
     Ok(())
+}
+
+async fn get_keylists(
+    db: &DbConn,
+    user_id: u64,
+    origin: KeylistOrigin,
+) -> Result<Vec<keylist::Model>, DbErr> {
+    match origin {
+        KeylistOrigin::All => KeylistQuery::get_keylists(db, user_id).await,
+        KeylistOrigin::Owned => KeylistQuery::get_owned_keylists(db, user_id).await,
+        KeylistOrigin::Assigned => KeylistQuery::get_assigned_keylists(db, user_id).await,
+    }
 }
 
 async fn create_and_send_keylist_key(
