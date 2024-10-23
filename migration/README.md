@@ -72,3 +72,41 @@
 | PK | id | integer | | N | AutoIncrement |
 | | name | varchar | 50 | N | |
 | | store_link | varchar | 500 | N | |
+
+### key_raffle 
+
+| KEY | NAME | TYPE | SIZE | NULLABLE | NOTES |
+|---|---|---|---|---|---|
+| PK | id | integer | | N | AutoIncrement |
+| UQ | name | varchar | 50 | N | Unique with owner_id |
+| | description | varchar | 255 | Y | |
+| | image_link | varchar  | 255 | Y | |
+| UQ | owner_id | bigint | | N | Unique with name |
+| | start_at | timestamp | | Y | |
+| | end_at | timestamp | | Y | |
+| | duration_in_seconds | integer | | Y | |
+| | possible_winners | integer | | Y | |
+| | create_date | timestamp | | N | |
+| | create_user_id | bigint | | N | |
+| | modify_date | timestamp | | Y | |
+| | modify_user_id | bigint | | Y | |
+
+### key_raffle_key
+
+| KEY | NAME | TYPE | SIZE | NULLABLE | NOTES |
+|---|---|---|---|---|---|
+| PK | id | integer | | N | AutoIncrement |
+| | key_raffle_id | int | | N | |
+| | gamekey_id | int | | N | |
+| | create_date | timestamp | | N | |
+| | create_user_id | bigint | | N | |
+
+### key_raffle_winner
+
+| KEY | NAME | TYPE | SIZE | NULLABLE | NOTES |
+|---|---|---|---|---|---|
+| PK | id | integer | | N | AutoIncrement |
+| | winner_id | bigint | | N | |
+| | key_raffle_key_id | int | | N | |
+| | create_date | timestamp | | N | |
+| | create_user_id | bigint | | N | |
