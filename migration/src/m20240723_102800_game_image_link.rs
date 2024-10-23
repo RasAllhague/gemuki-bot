@@ -1,6 +1,6 @@
 use sea_orm_migration::{
     prelude::*,
-    schema::{string_len, string_len_null},
+    schema::string_len_null,
 };
 
 #[derive(DeriveMigrationName)]
