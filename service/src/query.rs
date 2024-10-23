@@ -1,17 +1,29 @@
 use ::entity::{
     game::{self, Entity as Game},
     game_key::{self, Entity as GameKey},
+    keylist::{self, Entity as Keylist},
+    keylist_access::{self, Entity as KeylistAccess},
     platform::{self, Entity as Platform},
 };
 use sea_orm::{
-    ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect,
+    ColumnTrait, DbConn, DbErr, EntityTrait, FromQueryResult, ModelTrait, PaginatorTrait,
+    QueryFilter, QuerySelect,
 };
 
+#[derive(Clone, Debug, FromQueryResult)]
+pub struct GameDetailModel {
+    pub id: i32,
+    pub title: String,
+    pub description: Option<String>,
+    pub create_date: String,
+    pub create_user_id: i64,
+    pub modify_date: Option<String>,
+    pub modify_user_id: Option<i64>,
+    pub image_link: Option<String>,
+    pub key_count: i64,
+}
+
 pub struct GameQuery;
-
-pub struct GameKeyQuery;
-
-pub struct PlatformQuery;
 
 impl GameQuery {
     /// Gets all games from the database.
@@ -58,6 +70,15 @@ impl GameQuery {
     pub async fn count_total(db: &DbConn) -> Result<u64, DbErr> {
         Game::find().count(db).await
     }
+
+    pub async fn get_gamedetails(db: &DbConn) -> Result<Vec<GameDetailModel>, DbErr> {
+        Game::find()
+            .column_as(game_key::Column::Id.count(), "key_count")
+            .left_join(GameKey)
+            .into_model::<GameDetailModel>()
+            .all(db)
+            .await
+    }
 }
 
 /// Model for querying all data about a gamekey.
@@ -84,6 +105,8 @@ impl GameKeyModel {
         &self.platform
     }
 }
+
+pub struct GameKeyQuery;
 
 impl GameKeyQuery {
     /// Gets all gamekeys in the database.
@@ -210,7 +233,11 @@ impl GameKeyQuery {
         let res: Vec<i32> = GameKey::find()
             .select_only()
             .column(game_key::Column::Id)
-            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Unused")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .into_tuple()
             .all(db)
             .await?;
@@ -223,7 +250,10 @@ impl GameKeyQuery {
     }
 
     pub async fn count_total_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
-        GameKey::find().filter(game_key::Column::CreateUserId.eq(user_id)).count(db).await
+        GameKey::find()
+            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .count(db)
+            .await
     }
 
     pub async fn count_unused(db: &DbConn) -> Result<u64, DbErr> {
@@ -235,7 +265,11 @@ impl GameKeyQuery {
 
     pub async fn count_unused_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
         GameKey::find()
-            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Unused")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .count(db)
             .await
     }
@@ -249,11 +283,17 @@ impl GameKeyQuery {
 
     pub async fn count_used_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
         GameKey::find()
-            .filter(game_key::Column::Keystate.eq("Used").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Used")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .count(db)
             .await
     }
 }
+
+pub struct PlatformQuery;
 
 impl PlatformQuery {
     /// Gets all platforms in the database.
@@ -282,6 +322,89 @@ impl PlatformQuery {
     pub async fn get_by_name(db: &DbConn, name: &str) -> Result<Option<platform::Model>, DbErr> {
         Platform::find()
             .filter(platform::Column::Name.eq(name))
+            .one(db)
+            .await
+    }
+}
+
+pub struct KeylistQuery;
+
+impl KeylistQuery {
+    /// Gets all owned keylists.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
+    pub async fn get_owned_keylists(
+        db: &DbConn,
+        user_id: u64,
+    ) -> Result<Vec<keylist::Model>, DbErr> {
+        Keylist::find()
+            .filter(keylist::Column::OwnerId.eq(user_id))
+            .all(db)
+            .await
+    }
+
+    /// Gets all assigned keylists.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
+    pub async fn get_assigned_keylists(
+        db: &DbConn,
+        user_id: u64,
+    ) -> Result<Vec<keylist::Model>, DbErr> {
+        Keylist::find()
+            .left_join(KeylistAccess)
+            .filter(keylist_access::Column::TargetUserId.eq(user_id))
+            .all(db)
+            .await
+    }
+
+    /// Gets all assigned and owned keylists.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
+    pub async fn get_keylists(db: &DbConn, user_id: u64) -> Result<Vec<keylist::Model>, DbErr> {
+        Keylist::find()
+            .left_join(KeylistAccess)
+            .filter(
+                keylist_access::Column::TargetUserId
+                    .eq(user_id)
+                    .or(keylist::Column::OwnerId.eq(user_id)),
+            )
+            .all(db)
+            .await
+    }
+
+    pub async fn get_one(
+        db: &DbConn,
+        keylist_id: i32,
+        user_id: u64,
+    ) -> Result<Option<keylist::Model>, DbErr> {
+        Keylist::find_by_id(keylist_id)
+            .left_join(KeylistAccess)
+            .filter(
+                keylist_access::Column::TargetUserId
+                    .eq(user_id)
+                    .or(keylist::Column::OwnerId.eq(user_id)),
+            )
+            .one(db)
+            .await
+    }
+
+    pub async fn get_by_name(
+        db: &DbConn,
+        name: &str,
+        user_id: i64,
+    ) -> Result<Option<keylist::Model>, DbErr> {
+        Keylist::find()
+            .filter(
+                keylist::Column::Name
+                    .eq(name)
+                    .and(keylist::Column::OwnerId.eq(user_id)),
+            )
             .one(db)
             .await
     }

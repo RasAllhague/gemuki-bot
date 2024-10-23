@@ -31,6 +31,8 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Game,
+    #[sea_orm(has_many = "super::keylist_key::Entity")]
+    KeylistKey,
     #[sea_orm(
         belongs_to = "super::platform::Entity",
         from = "Column::PlatformId",
@@ -44,6 +46,12 @@ pub enum Relation {
 impl Related<super::game::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Game.def()
+    }
+}
+
+impl Related<super::keylist_key::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::KeylistKey.def()
     }
 }
 

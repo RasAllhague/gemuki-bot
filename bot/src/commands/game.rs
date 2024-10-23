@@ -29,10 +29,10 @@ pub async fn game(ctx: Context<'_>) -> Result<(), PoiseError> {
 pub async fn list(ctx: Context<'_>) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let games = GameQuery::get_all(db).await?;
+    let games = GameQuery::get_gamedetails(db).await?;
 
     if !games.is_empty() {
-        paginate::paginate_games(ctx, &games).await?;
+        paginate::create_pagination(ctx, &games).await?;
     } else {
         ctx.reply("No games found.").await?;
     }

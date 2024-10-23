@@ -35,10 +35,6 @@ impl GameTitleCache {
         }
     }
 
-    pub fn last_refresh(&self) -> NaiveDateTime {
-        self.last_refresh
-    }
-
     pub fn cache(&self) -> &[String] {
         &self.cache
     }
@@ -112,18 +108,6 @@ impl SteamAppCache {
         reqwest::get(GET_ALL_APPS_URL).await?.text().await
     }
 
-    pub fn last_refresh(&self) -> NaiveDateTime {
-        self.last_refresh
-    }
-
-    pub fn cache(&self) -> &[App] {
-        &self.cache
-    }
-
-    pub fn find_by_id(&self, appid: u32) -> Option<&App> {
-        self.cache.iter().find(|x| x.appid() == appid)
-    }
-
     pub fn find_by_name(&self, name: &str) -> Option<&App> {
         self.cache.iter().find(|x| x.name() == name)
     }
@@ -138,12 +122,5 @@ impl SteamAppCache {
 
             info!("Cache has been updated.");
         }
-    }
-
-    pub async fn force_update(&mut self) {
-        self.cache = Self::get_apps().await;
-        self.last_refresh = Utc::now().naive_utc();
-
-        info!("Cache has been updated forcefully.");
     }
 }
