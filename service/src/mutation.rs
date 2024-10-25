@@ -130,14 +130,14 @@ impl GameKeyMutation {
         Ok(Some(updated))
     }
 
-    /// Deletes a gamekey by its id.
+    /// Deletes a gamekey by its id and the owner_id.
     ///
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
-    pub async fn delete(db: &DbConn, id: i32, user_id: u64) -> Result<DeleteResult, DbErr> {
+    pub async fn delete(db: &DbConn, id: i32, owner_id: u64) -> Result<DeleteResult, DbErr> {
         GameKey::delete_by_id(id)
-            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .filter(game_key::Column::OwnerId.eq(owner_id))
             .exec(db)
             .await
     }
@@ -207,14 +207,14 @@ impl KeylistMutation {
         Ok(Some(updated))
     }
 
-    /// Deletes a keylist by its id.
+    /// Deletes a keylist by its id owner_id.
     ///
     /// # Errors
     ///
     /// Will return `Err` if database operation fail. For more information look at [DbErr](https://docs.rs/sea-orm/latest/sea_orm/error/enum.DbErr.html).
-    pub async fn delete(db: &DbConn, id: i32, user_id: u64) -> Result<DeleteResult, DbErr> {
+    pub async fn delete(db: &DbConn, id: i32, owner_id: u64) -> Result<DeleteResult, DbErr> {
         if let None = Keylist::find_by_id(id)
-            .filter(keylist::Column::OwnerId.eq(user_id))
+            .filter(keylist::Column::OwnerId.eq(owner_id))
             .one(db)
             .await?
         {
@@ -230,7 +230,7 @@ impl KeylistMutation {
             .exec(db)
             .await?;
         Keylist::delete_by_id(id)
-            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .filter(game_key::Column::OwnerId.eq(owner_id))
             .exec(db)
             .await
     }
