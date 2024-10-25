@@ -19,6 +19,7 @@ pub struct Model {
     pub modify_date: Option<DateTimeUtc>,
     pub modify_user_id: Option<i64>,
     pub notes: Option<String>,
+    pub owner_id: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

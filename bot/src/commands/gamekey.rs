@@ -235,6 +235,7 @@ pub async fn add(
         notes: notes,
         create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
+        owner_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
     };
@@ -350,6 +351,7 @@ pub async fn edit(
             notes: notes.or(game_key.notes),
             create_date: game_key.create_date,
             create_user_id: game_key.create_user_id,
+            owner_id: game_key.owner_id,
             modify_date: Some(Utc::now()),
             modify_user_id: Some(ctx.author().id.into()),
         };

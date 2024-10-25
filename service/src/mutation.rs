@@ -88,6 +88,7 @@ impl GameKeyMutation {
             page_link: Set(gamekey.page_link),
             create_date: Set(gamekey.create_date),
             create_user_id: Set(gamekey.create_user_id),
+            owner_id: Set(gamekey.owner_id),
             ..Default::default()
         }
         .insert(db)
@@ -119,6 +120,7 @@ impl GameKeyMutation {
             notes: Set(update_gamekey.notes),
             create_date: gamekey.create_date,
             create_user_id: gamekey.create_user_id,
+            owner_id: Set(update_gamekey.owner_id),
             modify_date: Set(update_gamekey.modify_date),
             modify_user_id: Set(update_gamekey.modify_user_id),
         }
