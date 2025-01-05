@@ -1,4 +1,6 @@
-use crate::{Data, PoiseError};
+use gemuki_service::query::raffle_query;
+
+use crate::{paginate, Data, PoiseError};
 
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
@@ -13,8 +15,17 @@ pub async fn raffle(ctx: Context<'_>) -> Result<(), PoiseError> {
 }
 
 #[poise::command(slash_command)]
-pub async fn list(ctx: Context<'_>,) -> Result<(), PoiseError> {
-    todo!()
+pub async fn list(ctx: Context<'_>) -> Result<(), PoiseError> {
+    let db = &ctx.data().conn;
+    let key_raffles = raffle_query::get_all(db).await?;
+
+    if !key_raffles.is_empty() {
+        paginate::create_pagination(ctx, &key_raffles).await?;
+    } else {
+        ctx.reply("No games found.").await?;
+    }
+
+    Ok(())
 }
 
 #[poise::command(slash_command)]

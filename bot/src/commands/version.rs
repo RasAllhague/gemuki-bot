@@ -1,3 +1,5 @@
+use poise::serenity_prelude::{User, UserId};
+
 use crate::Data;
 
 type PoiseError = Box<dyn std::error::Error + Send + Sync>;

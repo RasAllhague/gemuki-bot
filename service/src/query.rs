@@ -409,3 +409,16 @@ impl KeylistQuery {
             .await
     }
 }
+
+pub mod raffle_query {
+    use ::entity::{
+        key_raffle::{self, Entity as KeyRaffle},
+    };
+    use sea_orm::{
+        DbConn, DbErr, EntityTrait,
+    };
+
+    pub async fn get_all(db: &DbConn) -> Result<Vec<key_raffle::Model>, DbErr> {
+        KeyRaffle::find().all(db).await
+    }
+}
