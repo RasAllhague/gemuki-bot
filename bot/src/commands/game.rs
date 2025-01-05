@@ -296,7 +296,7 @@ pub async fn export(ctx: Context<'_>) -> Result<(), PoiseError> {
     let games = GameQuery::get_all_games_with_keys(db)
         .await?
         .iter()
-        .map(|x| x.title.clone())
+        .map(|x| format!("`{}`", x.title.clone()))
         .collect::<Vec<String>>()
         .join("\n");
 
