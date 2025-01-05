@@ -58,6 +58,14 @@ impl GameQuery {
     pub async fn count_total(db: &DbConn) -> Result<u64, DbErr> {
         Game::find().count(db).await
     }
+
+    pub async fn get_all_games_with_keys(db: &DbConn) -> Result<Vec<game::Model>, DbErr> {
+        Game::find()
+            .left_join(game_key::Entity)
+            .filter(game_key::Column::Keystate.eq("Unused"))
+            .all(db)
+            .await
+    }
 }
 
 /// Model for querying all data about a gamekey.
@@ -210,7 +218,11 @@ impl GameKeyQuery {
         let res: Vec<i32> = GameKey::find()
             .select_only()
             .column(game_key::Column::Id)
-            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Unused")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .into_tuple()
             .all(db)
             .await?;
@@ -223,7 +235,10 @@ impl GameKeyQuery {
     }
 
     pub async fn count_total_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
-        GameKey::find().filter(game_key::Column::CreateUserId.eq(user_id)).count(db).await
+        GameKey::find()
+            .filter(game_key::Column::CreateUserId.eq(user_id))
+            .count(db)
+            .await
     }
 
     pub async fn count_unused(db: &DbConn) -> Result<u64, DbErr> {
@@ -235,7 +250,11 @@ impl GameKeyQuery {
 
     pub async fn count_unused_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
         GameKey::find()
-            .filter(game_key::Column::Keystate.eq("Unused").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Unused")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .count(db)
             .await
     }
@@ -249,7 +268,11 @@ impl GameKeyQuery {
 
     pub async fn count_used_of_user(db: &DbConn, user_id: u64) -> Result<u64, DbErr> {
         GameKey::find()
-            .filter(game_key::Column::Keystate.eq("Used").and(game_key::Column::CreateUserId.eq(user_id)))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Used")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .count(db)
             .await
     }

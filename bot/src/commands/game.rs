@@ -17,7 +17,7 @@ type Context<'a> = poise::Context<'a, Data, PoiseError>;
 #[poise::command(
     slash_command,
     owners_only,
-    subcommands("list", "details", "add", "edit", "remove", "quicksetup")
+    subcommands("list", "details", "add", "edit", "remove", "quicksetup", "export")
 )]
 pub async fn game(ctx: Context<'_>) -> Result<(), PoiseError> {
     ctx.say("How did you manage to do this?").await?;
@@ -118,7 +118,12 @@ pub async fn add(
         }
     };
 
-    ctx.data().game_title_cache.lock().await.force_update(db).await;
+    ctx.data()
+        .game_title_cache
+        .lock()
+        .await
+        .force_update(db)
+        .await;
 
     ctx.reply(message).await?;
 
@@ -145,20 +150,23 @@ pub async fn quicksetup(
     let app = match cache.find_by_name(&title) {
         Some(app) => app,
         None => {
-            ctx.reply("The title you search for does not exist on steam.").await?;
+            ctx.reply("The title you search for does not exist on steam.")
+                .await?;
             return Ok(());
         }
     };
 
     let app_details = match steam::get_app_details(app.appid()).await {
         Ok(None) => {
-            ctx.reply("Could not retrieve game data from steam.").await?;
+            ctx.reply("Could not retrieve game data from steam.")
+                .await?;
             return Ok(());
-        },
+        }
         Ok(details) => details.unwrap(),
         Err(why) => {
             error!("Could not retrieve game data from steam, {:?}", why);
-            ctx.reply("Could not retrieve game data from steam.").await?;
+            ctx.reply("Could not retrieve game data from steam.")
+                .await?;
             return Ok(());
         }
     };
@@ -182,7 +190,12 @@ pub async fn quicksetup(
         }
     };
 
-    ctx.data().game_title_cache.lock().await.force_update(db).await;
+    ctx.data()
+        .game_title_cache
+        .lock()
+        .await
+        .force_update(db)
+        .await;
 
     ctx.reply(message).await?;
 
@@ -230,7 +243,12 @@ pub async fn edit(
             }
         };
 
-        ctx.data().game_title_cache.lock().await.force_update(db).await;
+        ctx.data()
+            .game_title_cache
+            .lock()
+            .await
+            .force_update(db)
+            .await;
 
         ctx.reply(message).await?;
     } else {
@@ -266,6 +284,23 @@ pub async fn remove(
         ctx.reply(format!("No game with title {} found.", game))
             .await?;
     }
+
+    Ok(())
+}
+
+/// Exports a list of all games which have unused keys.
+#[poise::command(slash_command, owners_only)]
+pub async fn export(ctx: Context<'_>) -> Result<(), PoiseError> {
+    let db = &ctx.data().conn;
+
+    let games = GameQuery::get_all_games_with_keys(db)
+        .await?
+        .iter()
+        .map(|x| x.title.clone())
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    ctx.reply(format!("Games with keys:\n{games}")).await?;
 
     Ok(())
 }
