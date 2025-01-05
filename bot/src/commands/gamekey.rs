@@ -56,7 +56,7 @@ impl ToString for PlatformCoice {
 /// A command for managing games.
 #[poise::command(
     slash_command,
-    subcommands("list", "details", "add", "remove", "edit", "claim", "claim_random")
+    subcommands("list", "details", "add", "remove", "edit", "claim", "claim_random", "quickclaim")
 )]
 pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
     ctx.say("How did you manage to do this?").await?;
@@ -415,6 +415,60 @@ pub async fn claim(
     GameKeyMutation::update(db, game_key).await?;
 
     ctx.send(reply).await?;
+    Ok(())
+}
+
+/// Claims a key from a game. Sends the key value hidden behind a spoiler into the channel.
+#[poise::command(slash_command, owners_only)]
+pub async fn quickclaim(
+    ctx: Context<'_>,
+    #[description = "Name of the game you want to claim a key from."]
+    #[autocomplete = "autocomplete_game"]
+    game: String,
+) -> Result<(), PoiseError> {
+    let db = &ctx.data().conn;
+
+    let game_id = match GameQuery::get_by_title(db, &game).await? {
+        Some(g) => g.id,
+        None => {
+            ctx.send(
+                CreateReply::default()
+                    .content("Could not find game.")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+
+    if let Some(mut game_key) = GameKeyQuery::get_all_by_game(db, game_id, ctx.author().id.get())
+        .await?
+        .iter()
+        .filter(|x| x.game_key().keystate == "Unused")
+        .map(|x| x.game_key().clone())
+        .next()
+    {
+        let reply = CreateReply::default()
+            .content(format!("Your key: `{}`", game_key.value))
+            .ephemeral(true);
+
+        game_key.keystate = "Used".to_owned();
+        game_key.modify_date = Some(Utc::now().naive_utc().to_string());
+        game_key.modify_user_id = Some(ctx.author().id.into());
+
+        GameKeyMutation::update(db, game_key).await?;
+
+        ctx.send(reply).await?;
+        return Ok(());
+    }
+
+    ctx.send(
+        CreateReply::default()
+            .content(format!("No unused keys for this game found."))
+            .ephemeral(true),
+    )
+    .await?;
+
     Ok(())
 }
 
