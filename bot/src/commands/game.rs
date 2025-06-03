@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::{commands::autocomplete_game, paginate, steam, Data, PoiseError};
 use chrono::Utc;
 use entity::game;
@@ -5,13 +7,14 @@ use gemuki_service::{
     mutation::{GameKeyMutation, GameMutation},
     query::{GameKeyQuery, GameQuery},
 };
-use log::{error, warn};
+use log::{error, info, warn};
+use migration::sea_orm::DbConn;
 use poise::{
     serenity_prelude::{Color, CreateAttachment, CreateEmbed},
     CreateReply,
 };
 use tempfile::tempfile;
-use tokio::io::AsyncWriteExt;
+use tokio::{fs, io::AsyncWriteExt};
 
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
@@ -106,7 +109,7 @@ pub async fn add(
         title,
         description,
         image_link: image_link,
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
@@ -178,7 +181,7 @@ pub async fn quicksetup(
         title: app_details.name.clone(),
         description: Some(app_details.short_description.clone()),
         image_link: Some(app_details.header_image.clone()),
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
@@ -233,7 +236,7 @@ pub async fn edit(
             image_link: image_link.or(game.image_link),
             create_date: game.create_date,
             create_user_id: game.create_user_id,
-            modify_date: Some(Utc::now().naive_utc().to_string()),
+            modify_date: Some(Utc::now()),
             modify_user_id: Some(ctx.author().id.into()),
         };
 
@@ -295,28 +298,43 @@ pub async fn remove(
 pub async fn export(ctx: Context<'_>) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let mut file = {
-        let file = tempfile()?;
-        tokio::fs::File::from_std(file)
-    };
+    let file_id: uuid::Uuid = uuid::Uuid::new_v4();
+    let file_name = format!("games_{}.csv", file_id);
+
+    write_to_file(db, ctx.author().id.get(), &file_name).await?;
+
+    {
+        let file = fs::File::open(&file_name).await?;
+        let attachment = CreateAttachment::file(&file, &file_name).await?;
+
+        ctx.send(
+            CreateReply::default()
+                .content(format!("Found games:"))
+                .attachment(attachment),
+        )
+        .await?;
+    }
+
+    fs::remove_file(&file_name).await?;
+
+    Ok(())
+}
+
+async fn write_to_file(
+    db: &DbConn,
+    user_id: u64,
+    path: impl AsRef<Path>,
+) -> Result<(), PoiseError> {
+    let mut file = fs::File::create(&path).await?;
 
     file.write(b"game_title;create_date\n").await?;
 
-    for game in GameQuery::get_all_games_with_keys(db, ctx.author().id.get()).await? {
+    for game in GameQuery::get_all_games_with_keys(db, user_id).await? {
         file.write(format!("{};{}\n", game.title, game.create_date).as_bytes())
             .await?;
     }
 
     file.flush().await?;
-
-    let attachment = CreateAttachment::file(&file, "game_export.csv").await?;
-
-    ctx.send(
-        CreateReply::default()
-            .content(format!("Found games:"))
-            .attachment(attachment),
-    )
-    .await?;
 
     Ok(())
 }

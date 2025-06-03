@@ -4,7 +4,8 @@ use ::entity::{
     platform::{self, Entity as Platform},
 };
 use sea_orm::{
-    ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QuerySelect,
+    sqlx::types::chrono::Utc, ColumnTrait, DbConn, DbErr, EntityTrait, ModelTrait, PaginatorTrait,
+    QueryFilter, QuerySelect,
 };
 
 pub struct GameQuery;
@@ -68,7 +69,12 @@ impl GameQuery {
             .filter(
                 game_key::Column::Keystate
                     .eq("Unused")
-                    .and(game_key::Column::CreateUserId.eq(user_id)),
+                    .and(game_key::Column::CreateUserId.eq(user_id))
+                    .and(
+                        game_key::Column::ExpirationDate
+                            .is_null()
+                            .or(game_key::Column::ExpirationDate.gt(Utc::now())),
+                    ),
             )
             .all(db)
             .await
@@ -228,7 +234,12 @@ impl GameKeyQuery {
             .filter(
                 game_key::Column::Keystate
                     .eq("Unused")
-                    .and(game_key::Column::CreateUserId.eq(user_id)),
+                    .and(game_key::Column::CreateUserId.eq(user_id))
+                    .and(
+                        game_key::Column::ExpirationDate
+                            .is_null()
+                            .or(game_key::Column::ExpirationDate.gt(Utc::now())),
+                    ),
             )
             .into_tuple()
             .all(db)
@@ -250,7 +261,13 @@ impl GameKeyQuery {
 
     pub async fn count_unused(db: &DbConn) -> Result<u64, DbErr> {
         GameKey::find()
-            .filter(game_key::Column::Keystate.eq("Unused"))
+            .filter(
+                game_key::Column::Keystate.eq("Unused").and(
+                    game_key::Column::ExpirationDate
+                        .is_null()
+                        .or(game_key::Column::ExpirationDate.gt(Utc::now())),
+                ),
+            )
             .count(db)
             .await
     }
@@ -260,7 +277,12 @@ impl GameKeyQuery {
             .filter(
                 game_key::Column::Keystate
                     .eq("Unused")
-                    .and(game_key::Column::CreateUserId.eq(user_id)),
+                    .and(game_key::Column::CreateUserId.eq(user_id))
+                    .and(
+                        game_key::Column::ExpirationDate
+                            .is_null()
+                            .or(game_key::Column::ExpirationDate.gt(Utc::now())),
+                    ),
             )
             .count(db)
             .await

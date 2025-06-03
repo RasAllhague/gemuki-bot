@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use entity::game_key;
 use gemuki_service::{
     mutation::GameKeyMutation,
@@ -161,11 +161,22 @@ pub async fn details(
         .description(game.description.unwrap_or("None".to_owned()))
         .field("Platform", platform.name, true)
         .field("State", game_key.keystate, true)
-        .field("Create date", game_key.create_date, false)
+        .field(
+            "Expiration date",
+            game_key
+                .expiration_date
+                .map(|x| x.to_string())
+                .unwrap_or("None".to_owned()),
+            false,
+        )
+        .field("Create date", game_key.create_date.to_rfc3339(), false)
         .field("Create user id", game_key.create_user_id.to_string(), false)
         .field(
             "Modify date",
-            game_key.modify_date.unwrap_or("None".to_owned()),
+            game_key
+                .modify_date
+                .map(|x| x.to_rfc3339())
+                .unwrap_or("None".to_owned()),
             false,
         )
         .field(
@@ -200,6 +211,8 @@ pub async fn add(
     #[description = "Value of the key."] value: String,
     #[description = "Store page link of the key."] page_link: Option<String>,
     #[description = "Notes for the key."] notes: Option<String>,
+    #[description = "Date when the key expires. Format (1999-01-01T00:00:00Z)"]
+    expiration_date: Option<DateTime<Utc>>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -239,10 +252,11 @@ pub async fn add(
         keystate: keystate.to_string(),
         page_link: page_link,
         notes: notes,
-        create_date: Utc::now().naive_utc().to_string(),
+        create_date: Utc::now(),
         create_user_id: ctx.author().id.into(),
         modify_date: None,
         modify_user_id: None,
+        expiration_date: expiration_date.map(|x| x.naive_utc()),
     };
 
     let message = match GameKeyMutation::create(db, model).await {
@@ -290,6 +304,8 @@ pub async fn edit(
     #[description = "Value of the key."] value: Option<String>,
     #[description = "Store page link of the key."] page_link: Option<String>,
     #[description = "Notes for the key."] notes: Option<String>,
+    #[description = "Date when the key expires. Format (1999-01-01T00:00:00Z)"]
+    expiration_date: Option<DateTime<Utc>>,
 ) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
@@ -356,8 +372,9 @@ pub async fn edit(
             notes: notes.or(game_key.notes),
             create_date: game_key.create_date,
             create_user_id: game_key.create_user_id,
-            modify_date: Some(Utc::now().naive_utc().to_string()),
+            modify_date: Some(Utc::now()),
             modify_user_id: Some(ctx.author().id.into()),
+            expiration_date: expiration_date.map(|x| x.naive_utc()),
         };
 
         let message = match GameKeyMutation::update(db, model).await {
@@ -418,7 +435,7 @@ pub async fn claim(
         .ephemeral(true);
 
     game_key.keystate = "Used".to_owned();
-    game_key.modify_date = Some(Utc::now().naive_utc().to_string());
+    game_key.modify_date = Some(Utc::now());
     game_key.modify_user_id = Some(ctx.author().id.into());
 
     GameKeyMutation::update(db, game_key).await?;
@@ -462,7 +479,7 @@ pub async fn quickclaim(
             .ephemeral(true);
 
         game_key.keystate = "Used".to_owned();
-        game_key.modify_date = Some(Utc::now().naive_utc().to_string());
+        game_key.modify_date = Some(Utc::now());
         game_key.modify_user_id = Some(ctx.author().id.into());
 
         GameKeyMutation::update(db, game_key).await?;
@@ -505,8 +522,8 @@ pub async fn claim_random(ctx: Context<'_>) -> Result<(), PoiseError> {
     }
 
     let random_number = {
-        let mut rng = rand::thread_rng();
-        rng.gen_range(0..gamekeys.len())
+        let mut rng = rand::rng();
+        rng.random_range(0..gamekeys.len())
     };
     let gamekey_id = gamekeys[random_number];
 
@@ -538,7 +555,7 @@ pub async fn claim_random(ctx: Context<'_>) -> Result<(), PoiseError> {
         .ephemeral(true);
 
     game_key.keystate = "Used".to_owned();
-    game_key.modify_date = Some(Utc::now().naive_utc().to_string());
+    game_key.modify_date = Some(Utc::now());
     game_key.modify_user_id = Some(ctx.author().id.into());
 
     GameKeyMutation::update(db, game_key).await?;
