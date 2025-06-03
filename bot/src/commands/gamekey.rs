@@ -56,7 +56,16 @@ impl ToString for PlatformCoice {
 /// A command for managing games.
 #[poise::command(
     slash_command,
-    subcommands("list", "details", "add", "remove", "edit", "claim", "claim_random", "quickclaim")
+    subcommands(
+        "list",
+        "details",
+        "add",
+        "remove",
+        "edit",
+        "claim",
+        "claim_random",
+        "quickclaim"
+    )
 )]
 pub async fn gamekey(ctx: Context<'_>) -> Result<(), PoiseError> {
     ctx.say("How did you manage to do this?").await?;

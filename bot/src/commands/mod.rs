@@ -1,7 +1,7 @@
 pub mod game;
 pub mod gamekey;
-pub mod version;
 pub mod statistic;
+pub mod version;
 
 use crate::{Data, PoiseError};
 use poise::serenity_prelude::futures::{self, Stream, StreamExt};
