@@ -430,6 +430,18 @@ pub async fn claim(
         return Ok(());
     }
 
+    if let Some(expiration_date) = game_key.expiration_date {
+        if expiration_date < Utc::now().naive_utc() {
+            ctx.send(
+                CreateReply::default()
+                    .content("The key is already expired.")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    }
+
     let reply = CreateReply::default()
         .content(format!("Your key: `{}`", game_key.value))
         .ephemeral(true);
@@ -471,6 +483,10 @@ pub async fn quickclaim(
         .await?
         .iter()
         .filter(|x| x.game_key().keystate == "Unused")
+        .filter(|x| {
+            x.game_key().expiration_date.is_none()
+                || x.game_key().expiration_date.unwrap() > Utc::now().naive_utc()
+        })
         .map(|x| x.game_key().clone())
         .next()
     {
