@@ -59,10 +59,17 @@ impl GameQuery {
         Game::find().count(db).await
     }
 
-    pub async fn get_all_games_with_keys(db: &DbConn) -> Result<Vec<game::Model>, DbErr> {
+    pub async fn get_all_games_with_keys(
+        db: &DbConn,
+        user_id: u64,
+    ) -> Result<Vec<game::Model>, DbErr> {
         Game::find()
             .left_join(game_key::Entity)
-            .filter(game_key::Column::Keystate.eq("Unused"))
+            .filter(
+                game_key::Column::Keystate
+                    .eq("Unused")
+                    .and(game_key::Column::CreateUserId.eq(user_id)),
+            )
             .all(db)
             .await
     }

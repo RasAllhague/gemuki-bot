@@ -7,9 +7,11 @@ use gemuki_service::{
 };
 use log::{error, warn};
 use poise::{
-    serenity_prelude::{Color, CreateEmbed},
+    serenity_prelude::{Color, CreateAttachment, CreateEmbed},
     CreateReply,
 };
+use tempfile::tempfile;
+use tokio::io::AsyncWriteExt;
 
 type Context<'a> = poise::Context<'a, Data, PoiseError>;
 
@@ -293,14 +295,28 @@ pub async fn remove(
 pub async fn export(ctx: Context<'_>) -> Result<(), PoiseError> {
     let db = &ctx.data().conn;
 
-    let games = GameQuery::get_all_games_with_keys(db)
-        .await?
-        .iter()
-        .map(|x| format!("`{}`", x.title.clone()))
-        .collect::<Vec<String>>()
-        .join("\n");
+    let mut file = {
+        let file = tempfile()?;
+        tokio::fs::File::from_std(file)
+    };
 
-    ctx.reply(format!("Games with keys:\n{games}")).await?;
+    file.write(b"game_title;create_date\n").await?;
+
+    for game in GameQuery::get_all_games_with_keys(db, ctx.author().id.get()).await? {
+        file.write(format!("{};{}\n", game.title, game.create_date).as_bytes())
+            .await?;
+    }
+
+    file.flush().await?;
+
+    let attachment = CreateAttachment::file(&file, "game_export.csv").await?;
+
+    ctx.send(
+        CreateReply::default()
+            .content(format!("Found games:"))
+            .attachment(attachment),
+    )
+    .await?;
 
     Ok(())
 }
